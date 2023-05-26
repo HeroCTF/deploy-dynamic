@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+
+{% block main %}
+<div class="row center" style="text-align: center;">
+	<div>
+		<h1>Welcome {{ session["user_name"] }} !</h1>
+		<h3>One instance per player at a time.</h3>
+		<h3>An instance will last {{ max_instance_duration }} minutes.</h3>
+		<h3>Deploy unique instances for your challenges</h3>
+	</div>
+</div>
+
+<div>
+	<div class="row center">
+		<div class="terminal">
+			{% with messages = get_flashed_messages(with_categories=true) %}
+				{% for color, message in messages %}
+					<p style="color: {{ color }};">{{ message }}</p>
+				{% endfor %}
+			{% endwith %}
+
+			<form method="POST" action="/run_instance">
+				<span class="green_prefix size_up"> $ </span><label for="instances">Challenge to run :</label>
+				<br>
+				<br>
+				<span class="green_prefix">&nbsp> </span>
+				<select name="challenge_name">
+					<option value=""> Select a challenge </option>
+					{% for challenge in challenges_option %}
+						<option value="{{ challenge['name'] }}">{{ challenge['name'] }}</option>
+					{% endfor %}
+				</select>
+				<br>
+				{% if config['ENABLE_RECAPTCHA'] %}
+					<div style="margin: 20px 0 20px 0;">
+						{{ recaptcha }}
+					</div>
+				{% endif %}
+				<br>
+				<div class="row">
+					<span class="green_prefix size_up"> $ </span>
+					<div class=" green_prefix typing width_90 pointer" onclick="document.getElementById('submit').click()">Run instance</div>
+					<input class="bold" type="submit" id="submit" value="↵">
+				</div>
+			</form>
+		</div>
+
+		{% if session['admin'] %}
+			<a href="{{ url_for('admin')}}">Admin</a>
+		{% endif %}
+		<a href="{{ url_for('logout')}}">Logout</a>
+	</div>
+
+	
+	<div class="row center">
+		<div class="terminal">
+			<h3>Instances of your team {{ session['team_name'] }}:</h3>
+			{% if challenges_info %}
+				{% for key, challenge in challenges_info.items() %}
+					<div>
+						<hr style="margin: 30px 0 30px 0;">
+						{% for container in challenge %}
+							{% if loop.index == 1 %}
+								<p>
+									<b>{{ container['user_name'] }}</b> deployed the challenge <b>{{ container['name'] }}</b>
+									{% if container['user_name'] == session['user_name'] %}
+										(<a id="remove_me" href="/">remove</a>)
+									{% endif %}
+								</p>
+								<small>Remaining time: {{ container['time_remaining'] }}</small>
+							{% endif %}
+							<p>Host: <strong>{{ container['host'] }}</strong>{% if container['ports'] %}, ports: <strong>{{ container['ports'] }}</strong>{% endif %} (internal IP: {{ container['ip_address'] }})</p>
+						{% endfor %}
+					</div>
+				{% endfor %}
+			{% endif %}
+		</div>
+		<h3>{{ instances_count }} instance{% if instances_count > 1 %}s{% endif %} running</h3>
+	</div>
+</div>
+
+<script>
+	const remove_me_link = document.getElementById("remove_me");
+	if (remove_me_link !== undefined || remove_me_link !== null) {
+		remove_me_link.addEventListener('click', function(e) {
+			e.preventDefault();
+			fetch('{{ url_for("remove_me") }}')
+			.then((resp) => resp.json())
+			.then((data) => {
+				window.location.reload();
+			});
+		});
+	}
+
+	// auto-refresh the page every 5 minutes
+	setInterval(function() {
+		window.location.reload();
+	}, 5 * 60 * 1000);
+</script>
+{% endblock %}

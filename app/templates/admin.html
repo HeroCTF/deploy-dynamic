@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+
+{% block main %}
+<div class="row center">
+    <div style="text-align: center;">
+        <h1>Admin Panel</h1>
+        <h3>{{ instances_count }} instance{% if instances_count > 1 %}s{% endif %} running</h3>
+    </div>
+</div>
+
+<div>
+	<div class="row center full_width">
+		<div class="terminal full_width">
+            <table class="full_width">
+                <thead>
+                    <tr>
+                        <td><a class="pointer">ID</a></td>
+                        <td><a class="pointer">CTFd Team</a></td>
+                        <td><a class="pointer">CTFd Username</a></td>
+                        <td><a class="pointer">Docker image</a></td>
+                        <td><a class="pointer">Port</a></td>
+                        <td><a class="pointer">Instance name</a></td>
+                        <td><a class="pointer">Creation date</a></td>
+                        <td>
+                            <button type="button" id="deleteAllContainers">X</button>
+                        </td>
+                    </tr>
+                </thead>
+                <tbody id="containers">
+                </tbody>
+            </table>
+		</div>
+	</div>
+    <a href="{{ url_for('index')}}">Go back</a>
+</div>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        fetch('/container/all')
+        .then(response => response.json())
+        .then(data => {
+            let table = document.getElementById("containers");
+
+            data["data"].forEach(container => {
+                table.innerHTML += `
+                    <tr>
+                        <td>${container.id}</td>
+                        <td>${container.team}</td>
+                        <td>${container.username}</td>
+                        <td>${container.image}</td>
+                        <td>${container.ports}</td>
+                        <td>${container.instance_name}</td>
+                        <td>${container.date}</td>
+                        <td>
+                            <button type="button">
+                                <a onclick="deleteContainer(${container.id})">X</a>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+        })
+    });
+
+    document.getElementById('deleteAllContainers').onclick = ((e) => {
+        let validation = confirm("Are you sure you want to delete ALL instances ?");
+
+        if (validation) {
+            fetch('/container/all', {
+                method: 'DELETE',
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(JSON.stringify(data));
+                window.location.reload();
+            })
+        }
+    });
+
+    function deleteContainer(containerId) {
+        let validation = confirm("Are you sure you want to delete the instance n°" + containerId + " ?");
+
+        if (validation) {
+            fetch('/container/' + containerId, {
+                method: 'DELETE',
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(JSON.stringify(data));
+                window.location.reload();
+            })
+        }
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,163 @@
+@font-face {
+	font-family: moncao;
+	src: url("/static/font/Monaco.woff");
+}
+
+body {
+	font-family: moncao;
+	color: white;
+	background-image: url("https://ctf.heroctf.fr/themes/hacker_theme/static/img/bkg.png");
+}
+label {
+	font-family: moncao;
+}
+
+input, select, input:hover, select:hover {
+	background-color: black;
+	color: #b5e853;
+	border: none;
+	outline: none;
+	font-size: medium;
+}
+input:hover, select:hover {
+	cursor: pointer;
+}
+
+button {
+	background-color: black;
+	color: #b5e853;
+	border: solid 1px #b5e853;
+	border-radius: 5px;
+	outline: none;
+	font-size: large;
+	font-weight: 900;
+	padding: 0.4em 0.6em 0.3em 0.6em;
+}
+
+button:hover {
+	background-color: #b5e853;
+	color: black;
+	cursor: pointer;
+}
+
+.row {
+	display: flex;
+	flex-direction: row;
+	width: 100%;
+	gap: 1em;
+}
+
+@media only screen and (max-width: 680px) {
+	.row {
+		flex-direction: column;
+		align-items: center;
+		}
+}
+
+.terminal {
+	border: 2px solid white;
+	background-color: black;
+	border-radius: 10px;
+	padding: 1em;
+	margin: 1em;
+	width: 45%;
+}
+
+@media only screen and (max-width: 680px) {
+	.terminal {
+		width: 100%;
+	}
+}
+
+.green_prefix {
+	color: #b5e853;
+}
+
+.size_up {
+	font-size: 1.2em;
+}
+
+#error {
+	color: red;
+}
+
+#success {
+	color: green;
+}
+
+#info-challenge {
+	text-align: center;
+}
+
+.debug {
+	border: 2px solid red;
+}
+
+.center {
+	justify-content: center;
+	align-items: center;
+}
+
+.align_right {
+	justify-content: right;
+}
+
+.width_90{
+	width: 90%;
+}
+
+.bold {
+	font-weight: bold;
+}
+
+a:link, a:visited {
+	color: #b5e853;
+}
+a:hover, a:active {
+	color: #7bbd01;
+}
+
+.full_width {
+	width: 100%;
+}
+
+.pointer {
+	cursor: pointer;
+}
+
+thead {
+	background-color: rgb(39, 39, 39);
+}
+
+td {
+	border-color: white;
+	border: 2px solid;
+	padding: 0.3em;
+	text-align: center;
+}
+
+
+
+.typing {
+	width: fit-content;
+	overflow: hidden;
+	border-right: .15em solid #b5e853; 
+	white-space: nowrap;
+	letter-spacing: .15em;
+	animation-delay:15s;
+	animation:
+	typing 2.5s steps(19, end),
+	blink-caret .75s step-end infinite;
+}
+
+/* The typing effect */
+@keyframes typing {
+	from { width: 0 }
+	to { width: 10em }
+}
+
+/* The typewriter cursor effect */
+@keyframes blink-caret {
+	from, to { border-color: transparent }
+	50% { border-color: #b5e853; }
+}  

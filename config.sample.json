@@ -1,0 +1,99 @@
+{
+    "website_title": "HeroCTF - Deploy dynamic challenges",
+    "ctfd_url": "https://ctf.heroctf.fr",
+    "max_instance_count": 100,
+    "max_instance_duration": 100,
+    "random_ports": {
+        "min": 10000,
+        "max": 15000
+    },
+    "hosts": [
+        {
+            "domain": "127.0.0.1",
+            "api": "unix:///var/run/docker.sock"
+        },
+        {
+            "domain": "dyn-01.heroctf.fr",
+            "api": "tcp://192.168.172.7:2375"
+        },
+        {
+            "domain": "dyn-02.heroctf.fr",
+            "api": "tcp://192.168.172.174:2375"
+        }
+    ],
+    "challenges": [    
+        {
+            "name": "IMF #0 to #4",
+            "containers": [
+                {
+                    "docker_image": "imf_backup:latest",
+                    "hostname": "backup",
+                    "ports": [
+                        {
+                            "port": "22/tcp",
+                            "protocol": "ssh"
+                        }
+                    ],
+                    "mem_limit": "1024m"
+                },
+                {
+                    "docker_image": "imf_dev:latest",
+                    "hostname": "dev",
+                    "ports": [
+                        {
+                            "port": "22/tcp",
+                            "protocol": "ssh"
+                        }
+                    ],
+                    "mem_limit": "1024m"
+                }
+            ]
+        },
+        {
+            "name": "Chm0d",
+            "containers": [
+                {
+                    "docker_image": "chm0d:latest",
+                    "ports": [
+                        {
+                            "port": "22/tcp",
+                            "protocol": "ssh"
+                        }
+                    ],
+                    "mem_limit": "512m"
+                }
+            ]
+        },
+        {
+            "name": "Blogodogo",
+            "containers": [
+                {
+                    "docker_image": "blogodogo:latest",
+                    "ports": [
+                        {
+                            "port": "5000/tcp",
+                            "protocol": "http"
+                        }
+                    ],
+                    "environment": {
+                        "ADMIN_USERNAME": "admin",
+                        "ADMIN_PASSWORD": "c933d397ca70f73c5ced02fad3fb7ab5",
+                        "HOST": "http://localhost:5000",
+                        "REFERRAL_CODE": "83d99a0ac225079db31b44a2e58b19f0",
+                        "REDIS_HOST": "redis",
+                        "REDIS_PORT": "6379",
+                        "FLAG_1": "Hero{pr3333vi333wwwws_5973791}",
+                        "FLAG_2": "Hero{very_n1ce_move_into_c4che}"
+                    },
+                    "mem_limit": "1024m"
+                },
+                {
+                    "docker_image": "redis:7-alpine",
+                    "hostname": "redis",
+                    "ports": [],
+                    "mem_limit": "1024m"
+                }
+            ]
+        }
+    ]
+}
