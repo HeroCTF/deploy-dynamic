@@ -61,7 +61,7 @@ List of hosts:
 - `slaves`: Where instances/containers are started.
 
 > You need at least one host, the master and the slave can be the same host but its not recommended in production.
-> You can setup as many slave as you want, each time a challenge is run, a slaves is taken randomly to host it.
+> You can setup as many slave as you want, each time a challenge is run, a slave is taken randomly to host it.
 
 Firewall configuration:
 
@@ -94,6 +94,8 @@ You need to increase the number of Docker networks for each `slaves` machine (de
 ```
 
 You also need to expose your docker API to the `master`. To do that, you need to add `-H tcp://0.0.0.0:2375` to the execution command of the systemd service located at `/lib/systemd/system/docker.service`. More information on [stackoverflow](https://stackoverflow.com/a/60954417/11428808).
+
+All the slaves must build all docker images present in the `config.json` file (image names must match exactly).
 
 ## Todo
 
