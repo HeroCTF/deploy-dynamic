@@ -53,6 +53,8 @@ sudo -E python3 app.py
 
 ## Deployment
 
+### Hosts
+
 List of hosts:
 
 - `master`: Web application.
@@ -68,6 +70,30 @@ Firewall configuration:
 
 > WARNING: Do NOT expose a docker API on internet !!!
 
+### Docker configuration
+
+You need to increase the number of Docker networks for each `slaves` machine (default: 29). With the following configuration (`/etc/docker/daemon.json`) from [stackoverflow](https://stackoverflow.com/a/69027727/11428808), you will have 255 more network:
+
+```json
+{
+   "default-address-pools": [
+        {
+            "base":"172.17.0.0/12",
+            "size":16
+        },
+        {
+            "base":"192.168.0.0/16",
+            "size":20
+        },
+        {
+            "base":"10.99.0.0/16",
+            "size":24
+        }
+    ]
+}
+```
+
+You also need to expose your docker API to the `master`. To do that, you need to add `-H tcp://0.0.0.0:2375` to the execution command of the systemd service located at `/lib/systemd/system/docker.service`. More information on [stackoverflow](https://stackoverflow.com/a/60954417/11428808).
 
 ## Todo
 
