@@ -41,22 +41,24 @@
             let table = document.getElementById("containers");
 
             data["data"].forEach(container => {
-                table.innerHTML += `
-                    <tr>
-                        <td>${container.id}</td>
-                        <td>${container.team}</td>
-                        <td>${container.username}</td>
-                        <td>${container.image}</td>
-                        <td>${container.ports}</td>
-                        <td>${container.instance_name}</td>
-                        <td>${container.date}</td>
-                        <td>
-                            <button type="button">
-                                <a onclick="deleteContainer(${container.id})">X</a>
-                            </button>
-                        </td>
-                    </tr>
-                `;
+                let row = document.createElement('tr');
+
+                let fields = ['id', 'team', 'username', 'image', 'ports', 'instance_name', 'date'];
+                fields.forEach(field => {
+                    let cell = document.createElement('td');
+                    cell.textContent = container[field];
+                    row.appendChild(cell);
+                });
+
+                let deleteCell = document.createElement('td');
+                let deleteButton = document.createElement('button');
+                deleteButton.textContent = 'X';
+                deleteButton.setAttribute('type', 'button');
+                deleteButton.onclick = function() { deleteContainer(container.id); };
+                deleteCell.appendChild(deleteButton);
+                row.appendChild(deleteCell);
+
+                table.appendChild(row);
             });
         })
     });
