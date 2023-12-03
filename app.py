@@ -116,6 +116,7 @@ def index():
             challenges_info[instance.network_name].append({
                 "name": instance.challenge_name,
                 "host": instance.host_domain,
+                "hostname": instance.hostname,
                 "ip_address": instance.ip_address,
                 "ports": instance.ports,
                 "user_name": instance.user_name,

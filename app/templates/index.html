@@ -69,7 +69,7 @@
 								</p>
 								<small>Remaining time: {{ container['time_remaining'] }}</small>
 							{% endif %}
-							<p>Host: <strong>{{ container['host'] }}</strong>{% if container['ports'] %}, ports: <strong>{{ container['ports'] }}</strong>{% endif %} (internal IP: {{ container['ip_address'] }})</p>
+							<p>Host: <strong>{{ container['host'] }}</strong>{% if container['ports'] %}, ports: <strong>{{ container['ports'] }}</strong>{% endif %} ({{ container['hostname'] }})</p>
 						{% endfor %}
 					</div>
 				{% endfor %}
@@ -92,9 +92,9 @@
 		});
 	}
 
-	// auto-refresh the page every 5 minutes
+	// auto-refresh the page every 3 minutes
 	setInterval(function() {
 		window.location.reload();
-	}, 5 * 60 * 1000);
+	}, 3 * 60 * 1000);
 </script>
 {% endblock %}

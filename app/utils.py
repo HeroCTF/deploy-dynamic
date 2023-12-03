@@ -70,8 +70,8 @@ def create_instances(session, challenge_info):
         "host": random.choice(DOCKER_HOSTS),
         "containers": []
     }
-    # https://stackoverflow.com/a/69027727/11428808
-    network = deploy_config["host"]["client"].networks.create(deploy_config["network_name"], driver="bridge")
+    worker = deploy_config["host"]["client"]
+    worker.networks.create(deploy_config["network_name"], driver="bridge")
     current_app.logger.debug("Starting deployment '%s' for challenge '%s'.", deploy_config["network_name"], challenge_info["name"])
 
     # Generate containers environment 
@@ -91,21 +91,6 @@ def create_instances(session, challenge_info):
             "read_only": container.get("read_only", False)
         })
 
-    # Replace environment variables by their values
-    for container_config in deploy_config["containers"]:
-        env = container_config["environment"]
-        for i in range(len(deploy_config["containers"])):
-            for key, value in env.items():
-                ip_key = "${" + str(i) + "_IP}"
-                if ip_key in value:
-                    env[key] = env[key].replace(ip_key, deploy_config["containers"][i]["instance_name"])
-
-                port_pre_key = "${" + str(i) + "_PORT_"
-                if port_pre_key in value:
-                    port = value.split(port_pre_key)[1].split("}")[0]
-                    port_key = port_pre_key + port + "}"
-                    env[key] = env[key].replace(port_key, str(deploy_config["containers"][i]["ports"][port]))
-
     current_app.logger.debug("Environment for deployment '%s': %s", deploy_config["network_name"], deploy_config)
 
     # Save instances in DB and run containers
@@ -118,13 +103,14 @@ def create_instances(session, challenge_info):
             docker_image=container["docker_image"],
             challenge_name=challenge_info["name"],
             network_name=deploy_config["network_name"],
+            hostname=container["hostname"],
             ports=", ".join(f"{port}/{proto}" for port, proto in zip(container["ports"].values(), container["protocols"])),
             host_domain=deploy_config["host"]["domain"],
             instance_name=container["instance_name"]
         )
 
         try:
-            container = deploy_config["host"]["client"].containers.run(
+            container = worker.containers.run(
                 image=container["docker_image"],
                 command=container["command"],
                 hostname=container["hostname"],

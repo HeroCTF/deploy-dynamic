@@ -25,6 +25,7 @@ class Instances(db.Model):
 
     challenge_name = db.Column(db.String(128), unique=False, nullable=False)
     network_name = db.Column(db.String(128), unique=False, nullable=False)
+    hostname = db.Column(db.String(128), unique=False, nullable=False)
     ip_address = db.Column(db.String(32), unique=False, nullable=False)
     instance_name = db.Column(db.String(128), unique=True, nullable=False)
     docker_image = db.Column(db.String(128), unique=False, nullable=False)

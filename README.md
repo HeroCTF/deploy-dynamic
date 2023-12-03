@@ -108,6 +108,7 @@ All the slaves must build all docker images present in the `config.json` file (i
   - Monitoring on each hosts
   - Search/Select actions filter on HTML table
 - Show internal ip: boolean by challenges
+- Migrate to FastAPI + React
 
 ## Made with
 
