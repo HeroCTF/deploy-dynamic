@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 from flask import current_app
-from requests import get
+import requests
 from docker.errors import ImageNotFound, NotFound, APIError
 
-from random import choice, randint
-from string import hexdigits
+import re
+import secrets
+import random
 from datetime import datetime, timedelta
-from secrets import token_hex
 
 from app.config import (
     DOCKER_HOSTS,
@@ -66,8 +66,8 @@ def create_instances(session, challenge_info):
     """
     # Generate deploy environment
     deploy_config = {
-        "network_name": token_hex(16),
-        "host": choice(DOCKER_HOSTS),
+        "network_name": secrets.token_hex(16),
+        "host": random.choice(DOCKER_HOSTS),
         "containers": []
     }
     # https://stackoverflow.com/a/69027727/11428808
@@ -76,7 +76,7 @@ def create_instances(session, challenge_info):
 
     # Generate containers environment 
     for container in challenge_info["containers"]:
-        instance_name = token_hex(16)
+        instance_name = secrets.token_hex(16)
         deploy_config["containers"].append({
             "docker_image": container["docker_image"],
             "command": container.get("command", None),
@@ -87,7 +87,8 @@ def create_instances(session, challenge_info):
             },
             "protocols": [pinfo["protocol"] for pinfo in container["ports"]],
             "environment": container.get("environment", {}),
-            "mem_limit": container.get("mem_limit", "512m")
+            "mem_limit": container.get("mem_limit", "512m"),
+            "read_only": container.get("read_only", False)
         })
 
     # Replace environment variables by their values
@@ -134,10 +135,7 @@ def create_instances(session, challenge_info):
                 auto_remove=True,
                 detach=True,
                 mem_limit=container["mem_limit"],
-                # restart_policy={
-                #     "Name": "on-failure",
-                #     "MaximumRetryCount": 5
-                # }
+                read_only=container["read_only"]
             )
             instance.ip_address = find_ip_address(container)
         except ImageNotFound as err:
@@ -159,7 +157,7 @@ def find_unused_port(docker_host):
 
     while not found:
         found = True
-        rand_port = randint(MIN_PORTS, MAX_PORTS + 1)
+        rand_port = random.randint(MIN_PORTS, MAX_PORTS + 1)
 
         for container in containers:
             if rand_port in container.ports.values():
@@ -200,31 +198,44 @@ def check_access_key(key):
     """
     Returns the user_id, user_name, team_id, team_name and is_admin.
     """
-    if current_app.debug:
-        if key == "x":
-            return 1, "xanhacks", 1, "Arn'Hack", True
-        return 2, "toto", 1, "Arn'Hack", False
+    user = {
+        "user_id": None,
+        "username": None,
+        "team_id": None,
+        "team_name": None,
+        "is_admin": False
+    }
+    
+    pattern = r'^ctfd_[a-zA-Z0-9]+$'
+    if not re.match(pattern, key):
+        return False, "Invalid access key, wrong format!", user
 
     base_url = CTFD_URL.strip('/')
     try:
-        json = get(f"{base_url}/api/v1/users/me", headers={"Authorization":f"Token {key}", "Content-Type":"application/json"}).json()
+        resp_json = requests.get(f"{base_url}/api/v1/users/me",
+                            headers={"Authorization":f"Token {key}", "Content-Type":"application/json"}).json()
 
-        test_access_key = json.get("success")
-        user_id = json.get("data").get("id")
-        user_name = json.get("data").get("name")
-        team_id = json.get("data").get("team_id")
-        team_name = get(f"{base_url}/api/v1/teams/{team_id}", headers={"Authorization":f"Token {key}", "Content-Type":"application/json"}).json().get("data").get("name")
+        success = resp_json.get("success", False)
+        user["user_id"] = resp_json.get("data", {}).get("id", "")
+        user["username"] = resp_json.get("data", {}).get("name", "")
+        user["team_id"] = resp_json.get("data", {}).get("team_id", False)
 
-        if test_access_key:
-            test_admin = get(f"{base_url}/api/v1/configs", headers={"Authorization":f"Token {key}", "Content-Type":"application/json"}).json().get("success")
-            if test_admin:
-                return user_id, user_name, team_id, team_name, True
-            return user_id, user_name, team_id, team_name, False
+        # User is not in a team
+        if not success or not user["team_id"]:
+            return False, "User not in a team or invalid token.", user
+
+        resp_json = requests.get(f"{base_url}/api/v1/teams/{user['team_id']}",
+                                 headers={"Authorization":f"Token {key}", "Content-Type":"application/json"}).json()
+        user["team_name"] = resp_json.get("data", {}).get("name", "")
+
+        resp_json = requests.get(f"{base_url}/api/v1/configs", headers={"Authorization":f"Token {key}", "Content-Type":"application/json"}).json()
+        user["is_admin"] = resp_json.get("success", False)
+        return True, "", user
     except Exception as err:
         current_app.logger.error("Unable to reach CTFd with access key: %s", key)
         current_app.logger.error("Error: %s", str(err))
 
-    return False, False, False, False, False
+    return False, "An error has occured.", user
 
 def remove_all_instances():
     """

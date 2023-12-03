@@ -19,14 +19,18 @@ services:
     build: .
     restart: always
     volumes:
+      - ./app:/app/app
+      - ./app.py:/app/app.py
+      - ./config.json:/app/config.json
       - /var/run/docker.sock:/var/run/docker.sock
     depends_on:
       - postgres
     environment:
-      DEBUG: ${DEBUG:?Please provide a DEBUG variable, 1 or 0.}
+      DEBUG: ${DEBUG}
       DATABASE_URI: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres/${POSTGRES_DB}
-      RECAPTCHA_SITE_KEY: ${RECAPTCHA_SITE_KEY:?Please provide a ReCaptcha site key.} 
-      RECAPTCHA_SECRET_KEY: ${RECAPTCHA_SECRET_KEY:?Please provide a ReCaptcha secret key.} 
+      ENABLE_RECAPTCHA: ${ENABLE_RECAPTCHA}
+      RECAPTCHA_SITE_KEY: ${RECAPTCHA_SITE_KEY}
+      RECAPTCHA_SECRET_KEY: ${RECAPTCHA_SECRET_KEY}
 
   postgres:
     image: postgres:14

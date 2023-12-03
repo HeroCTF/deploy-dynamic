@@ -34,7 +34,8 @@
                             "protocol": "ssh"
                         }
                     ],
-                    "mem_limit": "1024m"
+                    "mem_limit": "1024m",
+                    "read_only": true
                 },
                 {
                     "docker_image": "imf_dev:latest",
@@ -45,7 +46,8 @@
                             "protocol": "ssh"
                         }
                     ],
-                    "mem_limit": "1024m"
+                    "mem_limit": "1024m",
+                    "read_only": false
                 }
             ]
         },
@@ -60,7 +62,8 @@
                             "protocol": "ssh"
                         }
                     ],
-                    "mem_limit": "512m"
+                    "mem_limit": "512m",
+                    "read_only": false
                 }
             ]
         },
@@ -85,13 +88,15 @@
                         "FLAG_1": "Hero{pr3333vi333wwwws_5973791}",
                         "FLAG_2": "Hero{very_n1ce_move_into_c4che}"
                     },
-                    "mem_limit": "1024m"
+                    "mem_limit": "1024m",
+                    "read_only": true
                 },
                 {
                     "docker_image": "redis:7-alpine",
                     "hostname": "redis",
                     "ports": [],
-                    "mem_limit": "1024m"
+                    "mem_limit": "1024m",
+                    "read_only": false
                 }
             ]
         }

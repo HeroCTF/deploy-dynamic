@@ -6,7 +6,7 @@
 - Multi exposed ports
 - Each challenges are in a seperate network
 - Supports `env` variables
-- Supports memory limitation (`mem_limit`)
+- Supports memory limitation (`mem_limit`) and read only filesystem (`read_only`)
 - Relation between containers using `hostname`
 - Max instances time and duration
 - Configure website name & favicon

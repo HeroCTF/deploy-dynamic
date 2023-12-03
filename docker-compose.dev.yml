@@ -6,21 +6,28 @@ services:
   app:
     build: .
     restart: always
+    network_mode: host # TEMP
     ports:
       - 5000:5000
     volumes:
+      - ./app:/app/app
+      - ./app.py:/app/app.py
+      - ./config.json:/app/config.json
       - /var/run/docker.sock:/var/run/docker.sock
     depends_on:
       - postgres
     environment:
-      DEBUG: ${DEBUG:?Please provide a DEBUG variable, 1 or 0.}
-      DATABASE_URI: ${DATABASE_URI:?Please provide a database URL connection.} 
-      RECAPTCHA_SITE_KEY: ${RECAPTCHA_SITE_KEY:?Please provide a ReCaptcha site key.} 
-      RECAPTCHA_SECRET_KEY: ${RECAPTCHA_SECRET_KEY:?Please provide a ReCaptcha secret key.} 
+      DEBUG: 1
+      # DATABASE_URI: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres/${POSTGRES_DB}
+      DATABASE_URI: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@127.0.0.1/${POSTGRES_DB}
+      ENABLE_RECAPTCHA: ${ENABLE_RECAPTCHA}
+      RECAPTCHA_SITE_KEY: ${RECAPTCHA_SITE_KEY}
+      RECAPTCHA_SECRET_KEY: ${RECAPTCHA_SECRET_KEY}
 
   postgres:
     image: postgres:14
     restart: always
+    network_mode: host # TEMP
     volumes:
       - ./data:/var/lib/postgresql/data
     environment:

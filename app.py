@@ -19,8 +19,7 @@ from app.config import (
     CTFD_URL,
     CHALLENGES,
     MAX_INSTANCE_COUNT,
-    MAX_INSTANCE_DURATION,
-    DOCKER_HOSTS
+    MAX_INSTANCE_DURATION
 )
 from app.utils import (
     get_total_instance_count,
@@ -78,16 +77,16 @@ def login():
         if not access_key:
             return render('login.html', error=True, message="Please provide an access key.")
 
-        user_id, user_name, team_id, team_name, is_admin = check_access_key(access_key)
-        if user_id is False:
-            return render('login.html', error=True, message="Access key is not valid.")
+        success, message, user = check_access_key(access_key)
+        if not success:
+            return render('login.html', error=True, message=message)            
 
         session["verified"] = True
-        session["user_id"] = user_id
-        session["user_name"] = user_name
-        session["team_id"] = team_id
-        session["team_name"] = team_name
-        session["admin"] = is_admin
+        session["user_id"] = user["user_id"]
+        session["user_name"] = user["username"]
+        session["team_id"] = user["team_id"]
+        session["team_name"] = user["team_name"]
+        session["admin"] = user["is_admin"]
 
         return redirect(url_for("index"))
     return redirect(url_for("login"))
