@@ -15,7 +15,7 @@
 
 1. Move [.env.sample](.env.sample) to `.env` and configure it.
 2. Move [config.sample.json](config.sample.json) to `config.json` and configure it.
-3. (optional) Add your HTTPs certificates (`fullchain.pem` and `privkey.pem`) to [nginx/certs](nginx/certs).
+3. (optional) Add your HTTPs certificates (`fullchain.pem` and `privkey.pem`) to [nginx/certs](nginx/certs). Command: `openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout privkey.pem -out fullchain.pem`
 4. (optional) Change the [favicon](./app/static/img/favicon.ico).
 5. Run the application:
 
