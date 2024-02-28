@@ -10,6 +10,11 @@ if getenv("DEBUG") and getenv("DEBUG").strip().upper() in ['1', 'TRUE']:
 else:
     DEBUG = False
 
+if getenv("ADMIN_ONLY") and getenv("ADMIN_ONLY").strip().upper() in ['1', 'TRUE']:
+    ADMIN_ONLY = True
+else:
+    ADMIN_ONLY = False
+
 with open("config.json", "r") as config_file:
     config = load(config_file)
 

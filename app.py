@@ -19,7 +19,8 @@ from app.config import (
     CTFD_URL,
     CHALLENGES,
     MAX_INSTANCE_COUNT,
-    MAX_INSTANCE_DURATION
+    MAX_INSTANCE_DURATION,
+    ADMIN_ONLY
 )
 from app.utils import (
     get_total_instance_count,
@@ -80,6 +81,9 @@ def login():
         success, message, user = check_access_key(access_key)
         if not success:
             return render('login.html', error=True, message=message)            
+
+        if ADMIN_ONLY and not user["is_admin"]:
+            return render('login.html', error=True, message="You need to be an administrator to login.")
 
         session["verified"] = True
         session["user_id"] = user["user_id"]
