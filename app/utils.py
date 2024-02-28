@@ -88,6 +88,7 @@ def create_instances(session, challenge_info):
             "protocols": [pinfo["protocol"] for pinfo in container["ports"]],
             "environment": container.get("environment", {}),
             "mem_limit": container.get("mem_limit", "512m"),
+            "privileged": container.get("privileged", False),
             "read_only": container.get("read_only", False)
         })
 
@@ -121,6 +122,7 @@ def create_instances(session, challenge_info):
                 auto_remove=True,
                 detach=True,
                 mem_limit=container["mem_limit"],
+                privileged=container["privileged"],
                 read_only=container["read_only"]
             )
             instance.ip_address = find_ip_address(container)
