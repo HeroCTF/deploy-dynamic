@@ -90,8 +90,8 @@ def create_instances(session, challenge_info):
             "mem_limit": container.get("mem_limit", "512m"),
             "privileged": container.get("privileged", False),
             "read_only": container.get("read_only", False),
-            "cpu_period": container.get("cpu_period", 100000),
-            "cpu_quota": container.get("cpu_quota", 50000)
+            "cpu_period": container.get("cpu_period", None),
+            "cpu_quota": container.get("cpu_quota", None)
         })
 
     current_app.logger.debug("Environment for deployment '%s': %s", deploy_config["network_name"], deploy_config)
