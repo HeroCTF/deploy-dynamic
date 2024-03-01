@@ -20,7 +20,7 @@ from app.config import (
     CHALLENGES,
     MAX_INSTANCE_COUNT,
     MAX_INSTANCE_DURATION,
-    MAX_CHALLENGES_PER_TEAM,
+    MAX_INSTANCE_PER_TEAM,
     ADMIN_ONLY
 )
 from app.utils import (
@@ -239,10 +239,9 @@ def run_instance():
         flash("The challenge name is not valid.", "red")
         return redirect(url_for('index'))
 
-    if MAX_CHALLENGES_PER_TEAM:
-        if get_challenge_count_per_team(session["team_id"]) >= MAX_CHALLENGES_PER_TEAM:
-            flash(f"Your team has reached the maximum number of concurrent running instances ({MAX_CHALLENGES_PER_TEAM}).", "red")
-            return redirect(url_for('index'))
+    if get_challenge_count_per_team(session["team_id"]) >= MAX_CHALLENGES_PER_TEAM:
+        flash(f"Your team has reached the maximum number of concurrent running instances ({MAX_CHALLENGES_PER_TEAM}).", "red")
+        return redirect(url_for('index'))
 
     remove_user_running_instance(session["user_id"])
     

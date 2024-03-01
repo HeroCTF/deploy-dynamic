@@ -23,10 +23,10 @@ with open("config.json", "r") as config_file:
 
     MAX_INSTANCE_COUNT = config["max_instance_count"]
     MAX_INSTANCE_DURATION = config["max_instance_duration"]
+    MAX_INSTANCE_PER_TEAM = config["max_instance_per_team"]
     MIN_PORTS = config["random_ports"]["min"]
     MAX_PORTS = config["random_ports"]["max"]
 
-    MAX_CHALLENGES_PER_TEAM = config["max_challenges_per_team"]
 
     CHALLENGES = config["challenges"]
     DOCKER_HOSTS = config["hosts"]
