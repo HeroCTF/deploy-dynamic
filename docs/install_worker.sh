@@ -40,6 +40,11 @@ cat <<EOF > /etc/docker/daemon.json
 }
 EOF
 
+# Restrict port 2375
+iptables -A INPUT -p tcp --dport 2375 -s 192.168.0.0/16 -j REJECT
+iptables -A INPUT -p tcp --dport 2375 -s 172.17.0.0/12 -j REJECT
+iptables -A INPUT -p tcp --dport 2375 -s 10.99.0.0/16 -j REJECT
+
 # Open Docker ports
 sed -i 's|ExecStart=/usr/bin/dockerd -H fd:// --containerd=/run/containerd/containerd.sock|ExecStart=/usr/bin/dockerd -H fd://  -H tcp://0.0.0.0:2375 --containerd=/run/containerd/containerd.sock|' /lib/systemd/system/docker.service
 
