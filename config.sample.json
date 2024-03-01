@@ -3,6 +3,7 @@
     "ctfd_url": "https://ctf.heroctf.fr",
     "max_instance_count": 100,
     "max_instance_duration": 100,
+    "max_challenges_per_team": 5,
     "random_ports": {
         "min": 10000,
         "max": 15000
@@ -63,7 +64,9 @@
                         }
                     ],
                     "mem_limit": "1024m",
-                    "read_only": false
+                    "read_only": false,
+                    "cpu_period" : 100000,
+                    "cpu_quota" : 100000
                 }
             ]
         }
