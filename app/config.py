@@ -26,6 +26,8 @@ with open("config.json", "r") as config_file:
     MIN_PORTS = config["random_ports"]["min"]
     MAX_PORTS = config["random_ports"]["max"]
 
+    MAX_CHALLENGES_PER_TEAM = config["max_challenges_per_team"]
+
     CHALLENGES = config["challenges"]
     DOCKER_HOSTS = config["hosts"]
 

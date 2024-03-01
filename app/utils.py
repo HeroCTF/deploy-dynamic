@@ -89,7 +89,9 @@ def create_instances(session, challenge_info):
             "environment": container.get("environment", {}),
             "mem_limit": container.get("mem_limit", "512m"),
             "privileged": container.get("privileged", False),
-            "read_only": container.get("read_only", False)
+            "read_only": container.get("read_only", False),
+            "cpu_period": container.get("cpu_period", 100000),
+            "cpu_quota": container.get("cpu_quota", 50000)
         })
 
     current_app.logger.debug("Environment for deployment '%s': %s", deploy_config["network_name"], deploy_config)
@@ -123,7 +125,9 @@ def create_instances(session, challenge_info):
                 detach=True,
                 mem_limit=container["mem_limit"],
                 privileged=container["privileged"],
-                read_only=container["read_only"]
+                read_only=container["read_only"],
+                cpu_period=container["cpu_period"], 
+                cpu_quota=container["cpu_quota"]
             )
             instance.ip_address = find_ip_address(container)
         except ImageNotFound as err:
@@ -135,6 +139,11 @@ def create_instances(session, challenge_info):
 
     return len(challenge_info["containers"])
 
+def get_challenge_count_per_team(team_id):
+    """
+    Returns the number of challenges running for a specific team.
+    """
+    return Instances.query.filter_by(team_id=team_id).distinct(Instances.network_name).count()
 
 def find_unused_port(docker_host):
     """

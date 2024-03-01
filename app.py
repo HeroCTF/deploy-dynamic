@@ -20,10 +20,12 @@ from app.config import (
     CHALLENGES,
     MAX_INSTANCE_COUNT,
     MAX_INSTANCE_DURATION,
+    MAX_CHALLENGES_PER_TEAM,
     ADMIN_ONLY
 )
 from app.utils import (
     get_total_instance_count,
+    get_challenge_count_per_team,
     check_challenge_name,
     check_access_key,
     get_challenge_info,
@@ -103,6 +105,7 @@ def index():
     Display running instances of your team and allows you to submit new instances.
     """
     instances = Instances.query.filter_by(team_id=session["team_id"]).all()
+    
 
     if instances:
         challenges_info = {}
@@ -126,6 +129,9 @@ def index():
                 "user_name": instance.user_name,
                 "time_remaining": remaining
             })
+
+ 
+
 
         return render('index.html', challenges=CHALLENGES, captcha=recaptcha, challenges_info=challenges_info)
     return render('index.html', challenges=CHALLENGES, captcha=recaptcha)
@@ -219,8 +225,13 @@ def run_instance():
         flash("The challenge name is not valid.", "red")
         return redirect(url_for('index'))
 
-    remove_user_running_instance(session["user_id"])
+    if MAX_CHALLENGES_PER_TEAM:
+        if get_challenge_count_per_team(session["team_id"]) >= MAX_CHALLENGES_PER_TEAM:
+            flash(f"Your team has reached the maximum number of concurrent running instances ({MAX_CHALLENGES_PER_TEAM}).", "red")
+            return redirect(url_for('index'))
 
+    remove_user_running_instance(session["user_id"])
+    
     if get_total_instance_count() > MAX_INSTANCE_COUNT:
         flash(f"The maximum number of dynamic instances has been reached (max: {MAX_INSTANCE_COUNT}).", "red")
         return redirect(url_for('index'))
