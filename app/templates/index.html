@@ -5,6 +5,7 @@
 	<div>
 		<h1>Welcome {{ session["user_name"] }} !</h1>
 		<h3>One instance per player at a time.</h3>
+		<h3>And a maximum of {{max_challenges_per_team}} instances per team.</h3>
 		<h3>An instance will last {{ max_instance_duration }} minutes.</h3>
 		<h3>Deploy unique instances for your challenges</h3>
 	</div>
@@ -54,7 +55,7 @@
 	
 	<div class="row center">
 		<div class="terminal">
-			<h3>Instances of your team {{ session['team_name'] }}:</h3>
+			<h3>Instances of your team {{ session['team_name'] }} :</h3>
 			{% if challenges_info %}
 				{% for key, challenge in challenges_info.items() %}
 					<div>
@@ -70,6 +71,17 @@
 								<small>Remaining time: {{ container['time_remaining'] }}</small>
 							{% endif %}
 							<p>Host: <strong>{{ container['host'] }}</strong>{% if container['ports'] %}, ports: <strong>{{ container['ports'] }}</strong>{% endif %} ({{ container['hostname'] }})</p>
+							{% if container['placeholders'] | length > 0 %}
+								<ul>
+								{% for placeholder in container['placeholders'] %}
+									{% if "http" in placeholder %}
+										<li><a href="{{ placeholder }}">{{ placeholder }}</a></li>
+									{% else %}
+										<li>{{ placeholder }}</li>
+									{% endif %}
+								{% endfor %}
+								</ul>
+							{% endif %}
 						{% endfor %}
 					</div>
 				{% endfor %}

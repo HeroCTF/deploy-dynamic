@@ -51,7 +51,8 @@ def render(template, **kwargs):
     """
     return render_template(template, title=WEBSITE_TITLE, ctfd_url=CTFD_URL,
         max_instance_duration=MAX_INSTANCE_DURATION, challenges_option=CHALLENGES,
-        instances_count=get_total_instance_count(), **kwargs)
+        instances_count=get_total_instance_count(), max_challenges_per_team=MAX_CHALLENGES_PER_TEAM ,**kwargs)
+
 
 
 @app.route("/admin", methods=['GET'])
@@ -130,8 +131,21 @@ def index():
                 "time_remaining": remaining
             })
 
- 
-
+            # Tout ça pour pas modifier la db 🤡
+            challenge_name = challenges_info[instance.network_name][-1]["name"]
+            placeholders = []
+            for chall in CHALLENGES:
+                if chall["name"] == challenge_name:
+                    for cont in chall["containers"]:
+                        if "ports" in cont:
+                            for port in cont["ports"]:
+                                if "placeholder" in port:
+                                    placeholder = port["placeholder"]
+                                    placeholder = placeholder.replace("HOST", instance.host_domain)
+                                    placeholder = placeholder.replace("PORT", instance.ports.split("/")[0]) 
+                                    placeholders.append(placeholder)
+            
+            challenges_info[instance.network_name][-1]["placeholders"] = placeholders
 
         return render('index.html', challenges=CHALLENGES, captcha=recaptcha, challenges_info=challenges_info)
     return render('index.html', challenges=CHALLENGES, captcha=recaptcha)
