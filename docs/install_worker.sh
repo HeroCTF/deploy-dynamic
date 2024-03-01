@@ -47,3 +47,5 @@ echo '[!] Restarting Docker...'
 systemctl daemon-reload
 systemctl restart docker
 echo '[!] Done!'
+
+echo '[!] Do not forget to build all docker images on each worker !!!'
