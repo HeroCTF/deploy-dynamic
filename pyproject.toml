@@ -111,10 +111,11 @@ include = '\.pyi?$'
 
 
 [tool.pyright]
-include = ["app"]
+include = ["app", "app.py"]
 exclude = [
     "docs",
-    "nginx"
+    "nginx",
+    "venv"
 ]
 venvPath = "./"
 venv = "venv"

@@ -6,6 +6,8 @@ from pathlib import Path
 
 from docker import DockerClient
 
+from app.types import ConfigChallengeType, ConfigDockerHostType
+
 
 try:
     DEBUG = strtobool(getenv("DEBUG", "0"))
@@ -31,8 +33,8 @@ with Path("config.json").open() as config_file:
     MIN_PORTS = config["random_ports"]["min"]
     MAX_PORTS = config["random_ports"]["max"]
 
-    CHALLENGES = config["challenges"]
-    DOCKER_HOSTS = config["hosts"]
+    CHALLENGES: list[ConfigChallengeType] = config["challenges"]
+    DOCKER_HOSTS: list[ConfigDockerHostType] = config["hosts"]
 
     for host in DOCKER_HOSTS:
         host["client"] = DockerClient(base_url=host["api"])
