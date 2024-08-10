@@ -126,10 +126,8 @@ def index() -> str:
                 challenges_info[instance.network_name] = []
 
             remaining = datetime.timedelta(minutes=MAX_INSTANCE_DURATION) - (
-                
-                    datetime.datetime.now(datetime.UTC)
-                    - instance.creation_date.replace(tzinfo=datetime.UTC)
-                
+                datetime.datetime.now(datetime.UTC)
+                - instance.creation_date.replace(tzinfo=datetime.UTC)
             )
             if remaining > datetime.timedelta(seconds=0):
                 remaining = (

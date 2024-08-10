@@ -77,8 +77,7 @@ def find_ip_address(container: Container) -> str:
 
 
 def create_instances(
-        session: flask.session,
-        challenge_info: ConfigChallengeType
+    session: flask.session, challenge_info: ConfigChallengeType
 ) -> int:
     """Create new instances."""
     # Generate deploy environment
