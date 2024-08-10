@@ -126,7 +126,10 @@ def index() -> str:
                 challenges_info[instance.network_name] = []
 
             remaining = datetime.timedelta(minutes=MAX_INSTANCE_DURATION) - (
-                datetime.datetime.now(datetime.UTC) - instance.creation_date
+                
+                    datetime.datetime.now(datetime.UTC)
+                    - instance.creation_date.replace(tzinfo=datetime.UTC)
+                
             )
             if remaining > datetime.timedelta(seconds=0):
                 remaining = (
@@ -233,7 +236,7 @@ def run_instance() -> flask.Response:
     challenge_name = request.form.get("challenge_name", None)
 
     # Disable captcha on debug mode
-    if not current_app.config["ENABLE_RECAPTCHA"] and not recaptcha.verify():
+    if current_app.config["ENABLE_RECAPTCHA"] and not recaptcha.verify():
         flash("Captcha failed.", "red")
         return redirect(url_for("index"))
 

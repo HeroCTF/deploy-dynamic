@@ -312,9 +312,9 @@ def remove_container_by_name(host_domain: str, name: str) -> None:
                     containers[0].remove(force=True)
 
                     network_name = next(
-                        containers[0]
-                        .attrs["NetworkSettings"]["Networks"]
-                        .keys()
+                        iter(
+                            containers[0].attrs["NetworkSettings"]["Networks"]
+                        )
                     )
                     networks = client.networks.list(
                         filters={"name": network_name}
