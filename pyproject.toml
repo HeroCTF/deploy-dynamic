@@ -1,0 +1,123 @@
+# ==== PyLint ====
+[tool.pylint.FORMAT]
+max-line-length = 79
+
+[tool.pylint."MESSAGES CONTROL"]
+disable = [
+    "missing-docstring",
+    "invalid-name",
+]
+
+[tool.pylint.DESIGN]
+max-parents = 13
+
+[tool.pylint.TYPECHECK]
+generated-members = [
+    "REQUEST",
+    "acl_users",
+    "aq_parent",
+    "[a-zA-Z]+_set{1,2}",
+    "save",
+    "delete",
+]
+
+
+# ==== Ruff ====
+[tool.ruff]
+target-version = "py311"
+line-length = 79
+extend-include = ["*.pyi"]
+extend-exclude = [
+    "docs/*",
+    "nginx/*",
+    "data/*"
+]
+output-format = "grouped"
+
+[tool.ruff.lint]
+ignore = [
+    "D100", # Missing docstring in public module
+    "D101", # Missing docstring in public class
+    "D102", # Missing docstring in public method
+    "D103", # Missing docstring in public function
+    "D104", # Missing docstring in public package
+    "D105", # Missing docstring in magic method
+    "D106", # Missing docstring in public nested class
+    "D107", # Missing docstring in `__init__`
+    "D203", # one-blank-line-before-class
+    "D205", # 1 blank line required between summary line and description
+    "D212", # multi-line-summary-second-line
+    "D401", # First line of docstring should be in imperative mood: "X"
+    "PLR2004", # Magic value used in comparison, consider replacing X with a constant variable
+    "ANN401", # Dynamically typed expressions (typing.Any) are disallowed in `X`
+    "RUF012", # Mutable class attributes should be annotated with `typing.ClassVar`
+    "FIX002",  # Line contains TODO, consider resolving the issue
+    "TD002",  # Missing author in TODO
+    "TD003",  # Missing issue link on the line following this TODO
+]
+select = [
+    "F", # Pyflakes
+    "E", # pycodestyle
+    "C90", # mccabe
+    "I", # isort
+    "N", # pep8-naming
+    "D", # pydocstyle
+    "UP", # pyupgrade
+    "ANN", # flake8-annotations
+    "S", # flake8-bandit
+    "BLE", # flake8-blind-except
+    "FBT", # flake8-boolean-trap
+    "B", # flake8-bugbear
+    "A", # flake8-builtins
+    "C4", # flake8-comprehensions
+    "EM", # flake8-errmsg
+    "ISC", # flake8-implicit-str-concat
+    "ICN", # flake8-import-conventions
+    "G", # flake8-logging-format
+    "INP", # flake8-no-pep420
+    "PIE", # flake8-pie
+    "T20", # flake8-print
+    "PYI", # flake8-pyi
+    "Q", # flake8-quotes
+    "RSE", # flake8-raise
+    "RET", # flake8-return
+    "SLOT", # flake8-slots
+    "SIM", # flake8-simplify
+    "TID", # flake8-tidy-imports
+    "TCH", # flake8-type-checking
+    "ARG", # flake8-unused-arguments
+    "PTH", # flake8-use-pathlib
+    "TD", # flake8-todos
+    "FIX", # flake8-fixme
+    "ERA", # eradicate
+    "PGH", # pygrep-hooks
+    "PL", # Pylint
+    "TRY", # tryceratops
+    "FLY", # flynt
+    "PERF", # Perflint
+    "RUF", # Ruff-specific rules
+]
+
+[tool.ruff.lint.isort]
+lines-after-imports = 2
+
+
+[tool.black]
+line-length = 79
+target-version = ['py311']
+include = '\.pyi?$'
+
+
+[tool.pyright]
+include = ["app"]
+exclude = [
+    "docs",
+    "nginx"
+]
+venvPath = "./"
+venv = "venv"
+reportMissingImports = false
+reportMissingTypeStubs = false
+useLibraryCodeForTypes = true
+pythonVersion = "3.11"
+pythonPlatform = "Linux"
