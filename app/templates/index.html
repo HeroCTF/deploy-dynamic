@@ -4,7 +4,7 @@
     {% set port, proto = service.split('/') %}
 
     {% if proto in ["http", "https"] %}
-        <a href="{ proto }}://{{ host }}:{{ port }}" target="_blank" referrerpolicy="no-referrer">{{ proto }}://{{ host }}:{{ port }}</a>
+        <a href="{{ proto }}://{{ host }}:{{ port }}" target="_blank" referrerpolicy="no-referrer">{{ proto }}://{{ host }}:{{ port }}</a>
     {% elif proto == "ssh" or True %}
         <a href="javascript:copy2Clipboard('ssh -p {{ port }} user@{{ host }}')">
             ssh -p {{ port }} user@{{ host }}
