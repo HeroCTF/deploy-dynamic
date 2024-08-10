@@ -1,21 +1,25 @@
 #!/usr/bin/env python3
-from os import getenv
+from distutils.util import strtobool
 from json import load
+from os import getenv
+from pathlib import Path
 
 from docker import DockerClient
 
 
-if getenv("DEBUG") and getenv("DEBUG").strip().upper() in ['1', 'TRUE']:
-    DEBUG = True
-else:
+try:
+    DEBUG = strtobool(getenv("DEBUG", "0"))
+except ValueError:
     DEBUG = False
 
-if getenv("ADMIN_ONLY") and getenv("ADMIN_ONLY").strip().upper() in ['1', 'TRUE']:
-    ADMIN_ONLY = True
-else:
+
+try:
+    ADMIN_ONLY = strtobool(getenv("ADMIN_ONLY", "0"))
+except ValueError:
     ADMIN_ONLY = False
 
-with open("config.json", "r") as config_file:
+
+with Path("config.json").open() as config_file:
     config = load(config_file)
 
     WEBSITE_TITLE = config["website_title"]
@@ -26,7 +30,6 @@ with open("config.json", "r") as config_file:
     MAX_INSTANCE_PER_TEAM = config["max_instance_per_team"]
     MIN_PORTS = config["random_ports"]["min"]
     MAX_PORTS = config["random_ports"]["max"]
-
 
     CHALLENGES = config["challenges"]
     DOCKER_HOSTS = config["hosts"]
