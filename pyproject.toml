@@ -48,12 +48,14 @@ ignore = [
     "D205", # 1 blank line required between summary line and description
     "D212", # multi-line-summary-second-line
     "D401", # First line of docstring should be in imperative mood: "X"
+    "S311",  # Standard pseudo-random generators are not suitable for cryptographic purposes
     "PLR2004", # Magic value used in comparison, consider replacing X with a constant variable
     "ANN401", # Dynamically typed expressions (typing.Any) are disallowed in `X`
     "RUF012", # Mutable class attributes should be annotated with `typing.ClassVar`
     "FIX002",  # Line contains TODO, consider resolving the issue
     "TD002",  # Missing author in TODO
     "TD003",  # Missing issue link on the line following this TODO
+    "TRY401",  # Redundant exception object included in `logging.exception` call
 ]
 select = [
     "F", # Pyflakes
