@@ -101,10 +101,10 @@ All the slaves must build all docker images present in the `config.json` file (i
 
 ## Todo
 
-- [ ] pylint  
+- [x] pylint  
 - [ ] add more docs about `config.json` format  
 - [ ] Extend instance feature  
-- [ ] Display connection string (ex: ssh -p ..., http://host:port, nc host port, ...)  
+- [x] Display connection string (ex: ssh -p ..., http://host:port, nc host port, ...)  
 - [ ] Better admin panel  
 	- [ ] Add challenge host to HTML table  
 	- [ ] Monitoring on each hosts  
