@@ -101,16 +101,16 @@ All the slaves must build all docker images present in the `config.json` file (i
 
 ## Todo
 
-- pylint
-- add more docs about `config.json` format
-- Extend instance feature
-- Display connection string (ex: ssh -p ..., http://host:port, nc host port, ...)
-- Better admin panel
-  - Add challenge host to HTML table
-  - Monitoring on each hosts
-  - Search/Select actions filter on HTML table
-- Show internal ip: boolean by challenges
-- Migrate to FastAPI + React
+- [x] pylint  
+- [ ] add more docs about `config.json` format  
+- [ ] Extend instance feature  
+- [x] Display connection string (ex: ssh -p ..., http://host:port, nc host port, ...)  
+- [ ] Better admin panel  
+	- [ ] Add challenge host to HTML table  
+	- [ ] Monitoring on each hosts  
+	- [ ] Search/Select actions filter on HTML table  
+- [ ] Show internal ip: boolean by challenges  
+- [ ] Migrate to FastAPI + React  
 
 ## Made with
 
