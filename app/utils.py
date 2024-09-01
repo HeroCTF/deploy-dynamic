@@ -97,20 +97,26 @@ def create_instances(
     # Generate containers environment
     for container in challenge_info["containers"]:
         instance_name = secrets.token_hex(16)
+        ports = {pinfo["port"]: find_unused_port(deploy_config["host"]) for pinfo in container["ports"]}
+        env = {"EXPOSED_PORTS": ports, "EXPOSED_HOST": deploy_config["host"]["domain"]}
+        env.update(container.get("environment", {}))
         deploy_config["containers"].append(
             {
                 "docker_image": container["docker_image"],
                 "command": container.get("command", None),
                 "hostname": container.get("hostname", instance_name),
                 "instance_name": instance_name,
-                "ports": {
-                    pinfo["port"]: find_unused_port(deploy_config["host"])
-                    for pinfo in container["ports"]
-                },
+                "ports": ports,
                 "protocols": [
                     pinfo["protocol"] for pinfo in container["ports"]
                 ],
-                "environment": container.get("environment", {}),
+                "users": [
+                    pinfo.get("user", None) for pinfo in container["ports"]
+                ],
+                "passwords": [
+                    pinfo.get("password", None) for pinfo in container["ports"]
+                ],
+                "environment": env,
                 "mem_limit": container.get("mem_limit", "512m"),
                 "privileged": container.get("privileged", False),
                 "read_only": container.get("read_only", False),
@@ -118,7 +124,6 @@ def create_instances(
                 "cpu_quota": container.get("cpu_quota", None),
             }
         )
-
     current_app.logger.debug(
         "Environment for deployment '%s': %s",
         deploy_config["network_name"],
@@ -137,10 +142,12 @@ def create_instances(
             network_name=deploy_config["network_name"],
             hostname=container["hostname"],
             ports=", ".join(
-                f"{port}/{proto}"
-                for port, proto in zip(
+                f"{port}/{proto} @ {user}:{password}"
+                for port, proto, user, password in zip(
                     container["ports"].values(),
                     container["protocols"],
+                    container["users"],
+                    container["passwords"],
                     strict=False,
                 )
             ),
