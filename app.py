@@ -208,7 +208,7 @@ def run_instance():
     challenge_name = request.form.get("challenge_name", None)
 
     # Disable captcha on debug mode
-    if not current_app.config["ENABLE_RECAPTCHA"] and not recaptcha.verify():
+    if not current_app.config["DEBUG"] and current_app.config["ENABLE_RECAPTCHA"] and not recaptcha.verify():
         flash("Captcha failed.", "red")
         return redirect(url_for('index'))
 
