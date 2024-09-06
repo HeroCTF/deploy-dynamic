@@ -16,7 +16,7 @@ def create_app():
     app.config["SQLALCHEMY_DATABASE_URI"] = getenv("DATABASE_URI")
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
-    app.config["ENABLE_RECAPTCHA"] = getenv("ENABLE_RECAPTCHA", False)
+    app.config["ENABLE_RECAPTCHA"] = getenv("ENABLE_RECAPTCHA", False) in ["1", "True", "TRUE"]
     app.config["RECAPTCHA_SITE_KEY"] = getenv("RECAPTCHA_SITE_KEY", "")
     app.config["RECAPTCHA_SECRET_KEY"] = getenv("RECAPTCHA_SECRET_KEY", "") 
 
