@@ -190,6 +190,25 @@ def check_challenge_name(challenge_name):
             return True
     return False
 
+def check_mode(key):
+    """
+    Returns the mode of the CTFd instance (teams or user)
+    """
+    base_url = CTFD_URL.strip('/')
+    try:
+        req = requests.get(f"{base_url}/api/v1/teams",
+                                 headers={"Authorization":f"Token {key}", "Content-Type": "application/json"})
+        # If /api/v1/teams endpoint is accessible, then CTF mode is teams, otherwise if 404 it's user. Dirty but works.
+        if req.status_code == 200:
+            return "teams"
+        elif req.status_code == 404:
+            return "user"
+        else:
+            return False
+    except Exception as err:
+        current_app.logger.error(f"Error checking mode: {err}")
+        current_app.logger.error("Error: %s", err)
+    return False
 
 def check_access_key(key):
     """
@@ -202,7 +221,7 @@ def check_access_key(key):
         "team_name": None,
         "is_admin": False
     }
-    
+
     pattern = r'^ctfd_[a-zA-Z0-9]+$'
     if not re.match(pattern, key):
         return False, "Invalid access key, wrong format!", user
@@ -215,18 +234,30 @@ def check_access_key(key):
         success = resp_json.get("success", False)
         user["user_id"] = resp_json.get("data", {}).get("id", "")
         user["username"] = resp_json.get("data", {}).get("name", "")
-        user["team_id"] = resp_json.get("data", {}).get("team_id", False)
 
-        # User is not in a team
-        if not success or not user["team_id"]:
-            return False, "User not in a team or invalid token.", user
+        mode = check_mode(key)
+        current_app.logger.error(mode)
 
-        resp_json = requests.get(f"{base_url}/api/v1/teams/{user['team_id']}",
-                                 headers={"Authorization":f"Token {key}", "Content-Type":"application/json"}).json()
-        user["team_name"] = resp_json.get("data", {}).get("name", "")
+        if mode == "teams":
+            user["team_id"] = resp_json.get("data", {}).get("team_id", False)
+
+            # User is not in a team
+            if not success or not user["team_id"]:
+                return False, "User not in a team or invalid token.", user
+
+            resp_json = requests.get(f"{base_url}/api/v1/teams/{user['team_id']}",
+                                    headers={"Authorization":f"Token {key}", "Content-Type":"application/json"}).json()
+            user["team_name"] = resp_json.get("data", {}).get("name", "")
+        # Easy workaround to keep the app working even in solo mode is to emulate a fake team based on user id and username :)
+        elif mode == "user":
+            user["team_id"] = resp_json.get("data", {}).get("id", "")
+            user["team_name"] = resp_json.get("data", {}).get("name", "")
+        else:
+            return False, "An error occurred while checking the CTF mode"
 
         resp_json = requests.get(f"{base_url}/api/v1/configs", headers={"Authorization":f"Token {key}", "Content-Type":"application/json"}).json()
         user["is_admin"] = resp_json.get("success", False)
+
         return True, "", user
     except Exception as err:
         current_app.logger.error("Unable to reach CTFd with access key: %s", key)
