@@ -1,21 +1,27 @@
 #!/usr/bin/env python3
-from os import getenv
+from distutils.util import strtobool
 from json import load
+from os import getenv
+from pathlib import Path
 
 from docker import DockerClient
 
+from app.types import ConfigChallengeType, ConfigDockerHostType
 
-if getenv("DEBUG") and getenv("DEBUG").strip().upper() in ['1', 'TRUE']:
-    DEBUG = True
-else:
+
+try:
+    DEBUG = strtobool(getenv("DEBUG", "0"))
+except ValueError:
     DEBUG = False
 
-if getenv("ADMIN_ONLY") and getenv("ADMIN_ONLY").strip().upper() in ['1', 'TRUE']:
-    ADMIN_ONLY = True
-else:
+
+try:
+    ADMIN_ONLY = strtobool(getenv("ADMIN_ONLY", "0"))
+except ValueError:
     ADMIN_ONLY = False
 
-with open("config.json", "r") as config_file:
+
+with Path("config.json").open() as config_file:
     config = load(config_file)
 
     WEBSITE_TITLE = config["website_title"]
@@ -27,9 +33,8 @@ with open("config.json", "r") as config_file:
     MIN_PORTS = config["random_ports"]["min"]
     MAX_PORTS = config["random_ports"]["max"]
 
-
-    CHALLENGES = config["challenges"]
-    DOCKER_HOSTS = config["hosts"]
+    CHALLENGES: list[ConfigChallengeType] = config["challenges"]
+    DOCKER_HOSTS: list[ConfigDockerHostType] = config["hosts"]
 
     for host in DOCKER_HOSTS:
         host["client"] = DockerClient(base_url=host["api"])

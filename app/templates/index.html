@@ -1,5 +1,31 @@
 {% extends 'base.html' %}
 
+{% macro quickLaunch(host, service) %}
+    {% set p, credential = service.split(' @ ') %}
+    {% set port, proto = p.split('/') %}
+    {% set username, password = credential.split(':') %}
+
+    {% if proto in ["http", "https"] %}
+        <a href="{{ proto }}://{{ host }}:{{ port }}" target="_blank" referrerpolicy="no-referrer">{{ proto }}://{{ host }}:{{ port }}</a>
+    {% elif proto == "ssh" %}
+        <a href="javascript:copy2Clipboard('ssh -p {{ port }} {{ username }}@{{ host }}')">
+            ssh -p {{ port }} {{ username }}@{{ host }}
+        </a>
+    {% elif proto == "tcp" %}
+        <a href="javascript:copy2Clipboard('nc {{ host }} {{ port }}')">
+            nc {{ host }} {{ port }}
+        </a>
+    {% elif proto == "mysql" %}
+        <a href="javascript:copy2Clipboard('mysql -u {{ username }} -p {{ password }} -h {{ host }} -P {{ port }}')">
+            mysql -u {{ username }} -p {{ password }} -h {{ host }} -P {{ port }}
+        </a>
+    {% else %}
+    	<p>
+    		Wtf is this protocol? Just <a href="https://letmegooglethat.com/?q={{ proto }}" target="_blank" referrerpolicy="no-referrer">Google</a> that bro.
+    	</p>
+    {% endif %}
+{%- endmacro %}
+
 {% block main %}
 <div class="row center" style="text-align: center;">
 	<div>
@@ -51,7 +77,7 @@
 		<a href="{{ url_for('logout')}}">Logout</a>
 	</div>
 
-	
+
 	<div class="row center">
 		<div class="terminal">
 			<h3>Instances of your team {{ session['team_name'] }}:</h3>
@@ -69,7 +95,33 @@
 								</p>
 								<small>Remaining time: {{ container['time_remaining'] }}</small>
 							{% endif %}
-							<p>Host: <strong>{{ container['host'] }}</strong>{% if container['ports'] %}, ports: <strong>{{ container['ports'] }}</strong>{% endif %} ({{ container['hostname'] }})</p>
+                            {% set services = container['ports'].split(', ') %}
+                            {% if services |length == 1 %}
+                                {% set port, credential = services[0].split(' @ ') %}
+                                <p>
+                                    Host: <strong>{{ container['host'] }}</strong>{% if port %}, Port: <strong>{{ port }}</strong>{% endif %}{% if credential.split(':')[0] != 'None' %}, Username: <strong>{{ credential.split(':')[0] }}</strong>{% endif %}{% if credential.split(':')[1] != 'None' %}, Password: <strong>{{ credential.split(':')[1] }}</strong>{% endif %} <small>({{ container['id'] }})</small>
+                                </p>
+                            {% elif services |length >= 1 %}
+                                <p>Host: <strong>{{ container['host'] }}</strong> <small>({{ container['id'] }})</small></p>
+                                <ul>
+                                {% for service in services %}
+                                    {% set port, credential = service.split(' @ ') %}
+                                    <li>
+                                        {% if port %}Port: <strong>{{ port }}</strong>{% endif %}{% if credential.split(':')[0] != 'None' %}, Username: <strong>{{ credential.split(':')[0] }}</strong>{% endif %}{% if credential.split(':')[1] != 'None' %}, Password: <strong>{{ credential.split(':')[1] }}</strong>{% endif %}
+                                    </li>
+                                {% endfor %}
+                                </ul>
+                            {% endif %}
+                            {% if container['ports'] %}
+                                <p>Quick launch :</p>
+                                <ul>
+                                    {% for service in services %}
+                                        <li>
+                                        {{ quickLaunch(container['host'], service) }}
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            {% endif %}
 						{% endfor %}
 					</div>
 				{% endfor %}
@@ -80,6 +132,11 @@
 </div>
 
 <script>
+
+    function copy2Clipboard(data) {
+        navigator.clipboard.writeText(data).then(() => alert("Content copied!"))
+    }
+
 	const remove_me_link = document.getElementById("remove_me");
 	if (remove_me_link !== undefined || remove_me_link !== null) {
 		remove_me_link.addEventListener('click', function(e) {

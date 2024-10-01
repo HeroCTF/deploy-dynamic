@@ -1,23 +1,29 @@
-from flask import session, redirect, url_for
-
+import typing
 from functools import wraps
 
+import flask
+from flask import redirect, session, url_for
 
-def login_required(f):
+
+P = typing.ParamSpec("P")
+R = typing.TypeVar("R", bound=flask.Response)
+
+
+def login_required(f: typing.Callable[P, R]) -> typing.Callable[P, R]:
     @wraps(f)
-    def wrap(*args, **kwargs):
+    def wrap(*args: P.args, **kwargs: P.kwargs) -> R:
         if session and session["verified"]:
             return f(*args, **kwargs)
-        else:
-            return redirect(url_for("login"))
+        return redirect(url_for("login"))
+
     return wrap
 
 
-def admin_required(f):
+def admin_required(f: typing.Callable[P, R]) -> typing.Callable[P, R]:
     @wraps(f)
-    def wrap(*args, **kwargs):
+    def wrap(*args: P.args, **kwargs: P.kwargs) -> R:
         if session and session["admin"]:
             return f(*args, **kwargs)
-        else:
-            return redirect(url_for("index"))
+        return redirect(url_for("index"))
+
     return wrap
