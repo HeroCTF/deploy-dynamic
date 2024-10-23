@@ -2,7 +2,7 @@ services:
 
   app:
     build: .
-    restart: always
+    restart: unless-stopped
     ports:
       - 5000:5000
     volumes:
@@ -19,7 +19,7 @@ services:
 
   postgres:
     image: postgres:17-alpine
-    restart: always
+    restart: unless-stopped
     volumes:
       - ./data:/var/lib/postgresql/data
     environment:
