@@ -131,7 +131,7 @@ def create_instances(session, challenge_info):
             )
             instance.ip_address = find_ip_address(container)
         except ImageNotFound as err:
-            current_app.logger.error("ImageNotFound: Unable to find %s, %s", docker_image, err)
+            current_app.logger.error("ImageNotFound: Unable to find %s, %s", container["docker_image"], err)
             return "ERROR", []
 
         db.session.add(instance)
