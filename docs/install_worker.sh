@@ -8,12 +8,12 @@ fi
 
 # Install dependencies
 apt-get update && apt-get install -y \
-	curl git neovim
+	curl git vim ufw
 
 # Read hostname and change it
 echo "[!] Enter the hostname for the worker: "
 read hostname
-hostnamectl set-hostname $hostname
+hostnamectl set-hostname "$hostname"
 
 # Install Docker
 curl -fsSL https://get.docker.com -o get-docker.sh && \
@@ -44,6 +44,13 @@ EOF
 iptables -A INPUT -p tcp --dport 2375 -s 192.168.0.0/16 -j REJECT
 iptables -A INPUT -p tcp --dport 2375 -s 172.17.0.0/12 -j REJECT
 iptables -A INPUT -p tcp --dport 2375 -s 10.99.0.0/16 -j REJECT
+
+# Setup UFW
+ufw limit ssh
+echo "[!] Enter the IP of the master node: "
+read master_ip
+ufw allow from "$master_ip" proto tcp to any port 2375
+ufw --force enable
 
 # Open Docker ports
 sed -i 's|ExecStart=/usr/bin/dockerd -H fd:// --containerd=/run/containerd/containerd.sock|ExecStart=/usr/bin/dockerd -H fd://  -H tcp://0.0.0.0:2375 --containerd=/run/containerd/containerd.sock|' /lib/systemd/system/docker.service
