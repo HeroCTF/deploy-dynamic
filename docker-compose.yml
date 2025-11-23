@@ -1,6 +1,3 @@
----
-version: "3.3"
-
 services:
 
   nginx:
@@ -33,10 +30,10 @@ services:
       RECAPTCHA_SECRET_KEY: ${RECAPTCHA_SECRET_KEY}
 
   postgres:
-    image: postgres:14
+    image: postgres:18-alpine
     restart: unless-stopped
     volumes:
-      - ./data:/var/lib/postgresql/data
+      - ./data/:/var/lib/postgresql/
     environment:
       POSTGRES_USER: ${POSTGRES_USER:?Please provide a PostgreSQL username} 
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Please provide a PostgreSQL password.}  
