@@ -77,22 +77,30 @@ def create_instances(session, challenge_info):
     # Generate containers environment 
     for container in challenge_info["containers"]:
         instance_name = secrets.token_hex(16)
+        ports = {
+            pinfo["port"]: find_unused_port(deploy_config["host"]) for pinfo in container["ports"]
+        }
+        environment = container.get("environment", {})
+        environment["DEPLOY_HOST"] = deploy_config["host"]["domain"]
+        environment["DEPLOY_PORTS"] = ",".join(f"{p}->{ports[p]}" for p in ports)
+
         deploy_config["containers"].append({
             "docker_image": container["docker_image"],
             "command": container.get("command", None),
             "hostname": container.get("hostname", instance_name),
             "instance_name": instance_name,
-            "ports": {
-                pinfo["port"]: find_unused_port(deploy_config["host"]) for pinfo in container["ports"]
-            },
+            "ports": ports,
             "protocols": [pinfo["protocol"] for pinfo in container["ports"]],
-            "environment": container.get("environment", {}),
+            "environment": environment,
+            "tmpfs": container.get("tmpfs", {}),
             "mem_limit": container.get("mem_limit", "512m"),
             "privileged": container.get("privileged", False),
             "read_only": container.get("read_only", False),
             "cpu_period": container.get("cpu_period", None),
             "cpu_quota": container.get("cpu_quota", None)
         })
+
+
 
     current_app.logger.debug("Environment for deployment '%s': %s", deploy_config["network_name"], deploy_config)
 
@@ -120,6 +128,7 @@ def create_instances(session, challenge_info):
                 name=container["instance_name"],
                 ports=container["ports"],
                 environment=container["environment"],
+                tmpfs=container["tmpfs"],
                 network=deploy_config["network_name"],
                 auto_remove=True,
                 detach=True,
