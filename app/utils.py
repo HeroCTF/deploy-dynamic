@@ -97,7 +97,9 @@ def create_instances(session, challenge_info):
             "privileged": container.get("privileged", False),
             "read_only": container.get("read_only", False),
             "cpu_period": container.get("cpu_period", None),
-            "cpu_quota": container.get("cpu_quota", None)
+            "cpu_quota": container.get("cpu_quota", None),
+            "cap_add": container.get("cap_add", []),
+            "cap_drop": container.get("cap_drop", [])
         })
 
 
@@ -136,7 +138,9 @@ def create_instances(session, challenge_info):
                 privileged=container["privileged"],
                 read_only=container["read_only"],
                 cpu_period=container["cpu_period"], 
-                cpu_quota=container["cpu_quota"]
+                cpu_quota=container["cpu_quota"],
+                cap_add=container["cap_add"],
+                cap_drop=container["cap_drop"]
             )
             instance.ip_address = find_ip_address(container)
         except ImageNotFound as err:
