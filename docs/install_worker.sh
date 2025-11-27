@@ -54,6 +54,7 @@ ufw --force enable
 
 # Open Docker ports
 sed -i 's|ExecStart=/usr/bin/dockerd -H fd:// --containerd=/run/containerd/containerd.sock|ExecStart=/usr/bin/dockerd -H fd://  -H tcp://0.0.0.0:2375 --containerd=/run/containerd/containerd.sock|' /lib/systemd/system/docker.service
+sed -i 's|ExecStart=/usr/bin/dockerd -H fd:// --containerd=/run/containerd/containerd.sock|ExecStart=/usr/bin/dockerd -H fd://  -H tcp://0.0.0.0:2375 --containerd=/run/containerd/containerd.sock|' /usr/lib/systemd/system/docker.service
 
 echo '[!] Restarting Docker...'
 systemctl daemon-reload
