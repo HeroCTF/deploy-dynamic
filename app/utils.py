@@ -152,17 +152,22 @@ def create_instances(session, challenge_info) -> int:
 
     return len(challenge_info["containers"])
 
-def get_challenge_count_per_team(team_id):
+def get_challenge_count_per_team(team_id: int) -> int:
     """
     Returns the number of challenges running for a specific team.
     """
     return Instances.query.filter_by(team_id=team_id).distinct(Instances.network_name).count()
 
-def find_unused_port(docker_host):
+def find_unused_port(docker_host) -> int:
     """
     Find a port that is not used by any instances (on a specific challenge host).
     """
-    containers = docker_host["client"].containers.list(all=True)
+    containers = []
+    try:
+        containers = docker_host["client"].containers.list(all=True)
+    except Exception as err:
+        current_app.logger.error("Unable to list containers on host '%s': %s", docker_host["domain"], err)
+
     found = False
 
     while not found:
