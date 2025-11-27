@@ -164,7 +164,7 @@ def find_unused_port(docker_host) -> int:
     """
     containers = []
     try:
-        containers = docker_host["client"].containers.list(all=True)
+        containers = docker_host["client"].containers.list()
     except Exception as err:
         current_app.logger.error("Unable to list containers on host '%s': %s", docker_host["domain"], err)
 
