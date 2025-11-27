@@ -232,7 +232,12 @@ def run_instance():
         return redirect(url_for('index'))
         
     challenge_info = get_challenge_info(challenge_name)
-    nb_container = create_instances(session, challenge_info)
+    
+    nb_container = 0
+    try:
+        nb_container = create_instances(session, challenge_info)
+    except Exception as e:
+        current_app.logger.error(f"Error while creating instances: {e}")
 
     if nb_container == 1:
         flash(f"{nb_container} container is starting for {challenge_name}...", "green")
