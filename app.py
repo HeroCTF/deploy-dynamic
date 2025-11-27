@@ -234,10 +234,13 @@ def run_instance():
     challenge_info = get_challenge_info(challenge_name)
     nb_container = create_instances(session, challenge_info)
 
-    if nb_container > 1:
+    if nb_container == 1:
+        flash(f"{nb_container} container is starting for {challenge_name}...", "green")
+    elif nb_container > 1:
         flash(f"{nb_container} containers are starting for {challenge_name}...", "green")
     else:
-        flash(f"{nb_container} container is starting for {challenge_name}...", "green")
+        flash("An error occurred while creating your instance. Please contact an administrator.", "red")
+
     return redirect(url_for('index'))
 
 
