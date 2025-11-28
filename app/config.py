@@ -1,19 +1,11 @@
 #!/usr/bin/env python3
-from os import getenv
 from json import load
+from os import getenv
 
 from docker import DockerClient
 
-
-if getenv("DEBUG") and getenv("DEBUG").strip().upper() in ['1', 'TRUE']:
-    DEBUG = True
-else:
-    DEBUG = False
-
-if getenv("ADMIN_ONLY") and getenv("ADMIN_ONLY").strip().upper() in ['1', 'TRUE']:
-    ADMIN_ONLY = True
-else:
-    ADMIN_ONLY = False
+DEBUG = getenv("DEBUG", "").strip().upper() in ["1", "TRUE"]
+ADMIN_ONLY = getenv("ADMIN_ONLY", "").strip().upper() in ["1", "TRUE"]
 
 with open("config.json", "r") as config_file:
     config = load(config_file)
@@ -26,7 +18,6 @@ with open("config.json", "r") as config_file:
     MAX_INSTANCE_PER_TEAM = config["max_instance_per_team"]
     MIN_PORTS = config["random_ports"]["min"]
     MAX_PORTS = config["random_ports"]["max"]
-
 
     CHALLENGES = config["challenges"]
     DOCKER_HOSTS = config["hosts"]

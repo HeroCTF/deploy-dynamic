@@ -4,12 +4,11 @@
 
 - Multi containers 
 - Multi exposed ports
-- Each challenges are in a seperate network
-- Supports `env` variables
-- Supports memory limitation (`mem_limit`) and read only filesystem (`read_only`)
+- Each challenge are in a separate network
 - Relation between containers using `hostname`
+- Supports for environment variables, capabilities, resource limitation, read only filesystem, ...
 - Max instances time and duration
-- Configure website name & favicon
+- Configure website name and favicon
 
 ## Getting started
 
@@ -119,5 +118,5 @@ All the slaves must build all docker images present in the `config.json` file (i
 
 ## Authors
 
-- xanhacks (Maintainer)
-- Log\_s (Contributor)
+- xanhacks
+- Log\_s

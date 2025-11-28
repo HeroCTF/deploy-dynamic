@@ -1,19 +1,20 @@
-from app.database import db
 from datetime import datetime
+
+from app.database import db
 
 
 class Instances(db.Model):
     """
-        id (int) : Primary key.
-        user_id (int) : CTFd User ID.
-        user_name (str) : CTFd User name.
-        team_id (int) : CTFd Team ID.
-        team_name (str) : CTFd Team name.
-        docker_image (str) : Docker image deployed by the user.
-        ports (str) : Port mapped for the docker instance.
-        instance_name (str) : Random name for the instance.
-        docker_client_id (int) : Challenges hosts ID.
-        creation_date (date) : Date of instance creation.
+    id (int) : Primary key.
+    user_id (int) : CTFd User ID.
+    user_name (str) : CTFd Username.
+    team_id (int) : CTFd Team ID.
+    team_name (str) : CTFd Team name.
+    docker_image (str) : Docker image deployed by the user.
+    ports (str) : Port mapped for the docker instance.
+    instance_name (str) : Random name for the instance.
+    docker_client_id (int) : Challenges hosts ID.
+    creation_date (date) : Date of instance creation.
     """
 
     id = db.Column(db.Integer, primary_key=True)
@@ -35,4 +36,4 @@ class Instances(db.Model):
     creation_date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
 
     def __repr__(self):
-        return f"[{self.id}] {self.docker_image} on port {self.port}, created at {self.creation_date}."
+        return f"[{self.id}] {self.docker_image} at {self.creation_date}"

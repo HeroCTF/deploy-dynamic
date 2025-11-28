@@ -1,6 +1,6 @@
-from flask import session, redirect, url_for
-
 from functools import wraps
+
+from flask import redirect, session, url_for
 
 
 def login_required(f):
@@ -10,6 +10,7 @@ def login_required(f):
             return f(*args, **kwargs)
         else:
             return redirect(url_for("login"))
+
     return wrap
 
 
@@ -20,4 +21,5 @@ def admin_required(f):
             return f(*args, **kwargs)
         else:
             return redirect(url_for("index"))
+
     return wrap

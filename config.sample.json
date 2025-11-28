@@ -1,74 +1,81 @@
 {
-    "website_title": "HeroCTF - Deploy dynamic challenges",
-    "ctfd_url": "https://ctf.heroctf.fr",
-    "max_instance_count": 100,
-    "max_instance_duration": 100,
-    "max_instance_per_team": 5,
-    "random_ports": {
-        "min": 10000,
-        "max": 15000
+  "website_title": "HeroCTF - Deploy dynamic challenges",
+  "ctfd_url": "https://ctf.heroctf.fr",
+  "max_instance_count": 100,
+  "max_instance_duration": 100,
+  "max_instance_per_team": 5,
+  "random_ports": {
+    "min": 10000,
+    "max": 15000
+  },
+  "hosts": [
+    {
+      "domain": "127.0.0.1",
+      "api": "unix:///var/run/docker.sock"
     },
-    "hosts": [
+    {
+      "domain": "dyn-01.heroctf.fr",
+      "api": "tcp://192.168.172.7:2375"
+    },
+    {
+      "domain": "dyn-02.heroctf.fr",
+      "api": "tcp://192.168.172.174:2375"
+    }
+  ],
+  "challenges": [
+    {
+      "name": "Nginx Default Page",
+      "containers": [
         {
-            "domain": "127.0.0.1",
-            "api": "unix:///var/run/docker.sock"
-        },
-        {
-            "domain": "dyn-01.heroctf.fr",
-            "api": "tcp://192.168.172.7:2375"
-        },
-        {
-            "domain": "dyn-02.heroctf.fr",
-            "api": "tcp://192.168.172.174:2375"
+          "docker_image": "nginx:stable-alpine",
+          "ports": [
+            {
+              "port": "80/tcp",
+              "protocol": "http"
+            }
+          ],
+          "mem_limit": "512m",
+          "read_only": false
         }
-    ],
-    "challenges": [
-		{
-            "name": "Nginx Default Page",
-            "containers": [
-                {
-                    "docker_image": "nginx:stable-alpine",
-                    "ports": [
-                        {
-                            "port": "80/tcp",
-                            "protocol": "http"
-                        }
-                    ],
-                    "mem_limit": "512m",
-                    "read_only": false
-                }
-            ]
+      ]
+    },
+    {
+      "name": "Multi-Container Web App",
+      "containers": [
+        {
+          "docker_image": "nginx:stable-alpine",
+          "hostname": "web_backup",
+          "ports": [
+            {
+              "port": "22/tcp",
+              "protocol": "ssh"
+            }
+          ],
+          "mem_limit": "512m",
+          "read_only": true,
+          "environment": {
+            "ADMIN_PASSWORD": "13fd035636b32f12d859bb5cafab74ca95d1b11d61fabf959f1984dafeda7184",
+            "APP_URL": "http://web_app:8000"
+          },
+          "cap_add": [
+            "NET_ADMIN"
+          ]
         },
         {
-            "name": "IMF #0 to #4",
-            "containers": [
-                {
-                    "docker_image": "imf_backup:latest",
-                    "hostname": "backup",
-                    "ports": [
-                        {
-                            "port": "22/tcp",
-                            "protocol": "ssh"
-                        }
-                    ],
-                    "mem_limit": "1024m",
-                    "read_only": true
-                },
-                {
-                    "docker_image": "imf_dev:latest",
-                    "hostname": "dev",
-                    "ports": [
-                        {
-                            "port": "22/tcp",
-                            "protocol": "ssh"
-                        }
-                    ],
-                    "mem_limit": "1024m",
-                    "read_only": false,
-                    "cpu_period" : 100000,
-                    "cpu_quota" : 100000
-                }
-            ]
+          "docker_image": "nginx:stable-alpine",
+          "hostname": "web_app",
+          "ports": [
+            {
+              "port": "8000/tcp",
+              "protocol": "http"
+            }
+          ],
+          "mem_limit": "1024m",
+          "read_only": false,
+          "cpu_period": 100000,
+          "cpu_quota": 100000
         }
-	]
+      ]
+    }
+  ]
 }
