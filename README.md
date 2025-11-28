@@ -47,7 +47,7 @@ python3 -m pip install -r requirements.txt
 
 export DATABASE_URI="sqlite:////tmp/sqlite.db"
 export DEBUG=1
-sudo -E python3 app.py
+sudo -E python3 run.py
 ```
 
 > You can utilize the `ADMIN_ONLY` flag to restrict login to administrators only. It's useful for testing your challenges before the beginning of the CTF. 
