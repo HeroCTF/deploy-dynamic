@@ -1,14 +1,140 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 	<head>
 		<meta charset="UTF-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<meta name="description" content="Deploy unique instances for your CTF challenges">
 		<title>{{ title }}</title>
 		<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css') }}">
 		<link rel="shortcut icon" href="{{ url_for('static', filename='img/favicon.ico') }}" type="image/x-icon">
 	</head>
 	<body>
-		{% block main %}
+		{% block navigation %}
+		{% if session and session.get("verified") %}
+		<nav>
+			<ul>
+				<li><a href="{{ url_for('index') }}">Home</a></li>
+				{% if session.get('admin') %}
+				<li><a href="{{ url_for('admin') }}">Admin Panel</a></li>
+				{% endif %}
+				<li><a href="{{ url_for('logout') }}">Logout</a></li>
+				<li style="margin-left: auto;">
+					<button type="button" id="info-btn" class="info-button" title="Show information">
+						ℹ
+					</button>
+				</li>
+			</ul>
+		</nav>
+		{% endif %}
+		{% endblock %}
+		
+		{% block modal %}
+		{% if session and session.get("verified") %}
+		<!-- Info Modal -->
+		<div id="info-modal" class="modal">
+			<div class="modal-content terminal">
+				<div class="modal-header">
+					<h2 style="margin: 0;">Information</h2>
+					<button type="button" class="modal-close" id="modal-close">&times;</button>
+				</div>
+				<div class="modal-body">
+					<ul>
+						<li>Deploy unique instances for your challenges</li>
+						<li>An instance will last <strong>{{ max_instance_duration }} minutes</strong>.</li>
+						<li>One instance per player at a time.</li>
+						<li>Maximum of <strong>{{ max_instance_per_team }} challenge{% if max_instance_per_team > 1 %}s{% endif %} per team</strong>.</li>
+					</ul>
+				</div>
+				<div class="modal-footer">
+					<button type="button" id="modal-ok" class="modal-ok-btn">Got it</button>
+				</div>
+			</div>
+		</div>
+		{% endif %}
+		{% endblock %}
+		<main>
+			{% block main %}
+			{% endblock %}
+		</main>
+		
+		{% block scripts %}
+		{% if session and session.get("verified") %}
+		<script>
+			// Modal functionality
+			const modal = document.getElementById('info-modal');
+			const infoBtn = document.getElementById('info-btn');
+			const modalClose = document.getElementById('modal-close');
+			const modalOk = document.getElementById('modal-ok');
+			const infoSeenKey = 'deploy-dynamic-info-seen';
+
+			// Function to show modal
+			function showModal() {
+				if (modal) {
+					modal.classList.add('show');
+				}
+			}
+
+			// Function to hide modal
+			function hideModal() {
+				if (modal) {
+					modal.classList.remove('show');
+				}
+			}
+
+			// Check if info has been seen before
+			function hasSeenInfo() {
+				return localStorage.getItem(infoSeenKey) === 'true';
+			}
+
+			// Mark info as seen
+			function markInfoAsSeen() {
+				localStorage.setItem(infoSeenKey, 'true');
+			}
+
+			// Show modal on first login
+			if (modal && !hasSeenInfo()) {
+				// Small delay to ensure page is loaded
+				setTimeout(showModal, 500);
+			}
+
+			// Event listeners
+			if (infoBtn) {
+				infoBtn.addEventListener('click', showModal);
+			}
+
+			if (modalClose) {
+				modalClose.addEventListener('click', function() {
+					hideModal();
+					markInfoAsSeen();
+				});
+			}
+
+			if (modalOk) {
+				modalOk.addEventListener('click', function() {
+					hideModal();
+					markInfoAsSeen();
+				});
+			}
+
+			// Close modal when clicking outside
+			if (modal) {
+				modal.addEventListener('click', function(e) {
+					if (e.target === modal) {
+						hideModal();
+						markInfoAsSeen();
+					}
+				});
+			}
+
+			// Close modal with Escape key
+			document.addEventListener('keydown', function(e) {
+				if (e.key === 'Escape' && modal && modal.classList.contains('show')) {
+					hideModal();
+					markInfoAsSeen();
+				}
+			});
+		</script>
+		{% endif %}
 		{% endblock %}
 	</body>
 </html>

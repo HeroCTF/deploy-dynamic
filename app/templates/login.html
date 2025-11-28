@@ -1,32 +1,47 @@
 {% extends 'base.html' %}
 
 {% block main %}
-<div class="row center" style="text-align: center;">
+<section class="row center" style="text-align: center; margin-bottom: 2em;">
 	<div>
-		<h1>Deploy unique instance</h1>
-		<h3>Create your access token at <a href="{{ ctfd_url }}/settings#tokens" target="_blank">{{ ctfd_url }}/settings#tokens.</a></h3>
+		<h1>Deploy Unique Instance</h1>
+		<h3>Create your access token at <a href="{{ ctfd_url }}/settings#tokens" target="_blank" rel="noopener noreferrer">{{ ctfd_url }}/settings#tokens</a></h3>
 		<h4>Do not forget to set a valid expiration date for the token.</h4>
 	</div>
-</div>
+</section>
 
-<div>
-	<div class="row center">
-		<div class="terminal">
-            {% if error %}
-                <p style="color: red;">Error: {{ message }}</p>
-            {% endif %}
+<div class="row center">
+	<div class="terminal" style="max-width: 600px;">
+		<h2 style="margin-top: 0; text-align: center;">Login</h2>
+		
+		{% if error %}
+			<div class="flash-message red" style="margin-bottom: 1em;">
+				<p style="margin: 0;">Error: {{ message }}</p>
+			</div>
+		{% endif %}
 
-			<form method="POST" action="{{ url_for('login') }}">
-				<span class="green_prefix size_up"> $ </span><label for="api_key">CTFd Access Tokens</label>
-				<br>
-                <br>
-				<span class="green_prefix">&nbsp> </span>
-                <input class="width_90" placeholder="Enter your access tokens" type="text" name="access_key">
-				<br>
-                <br>
-                <input class="bold" type="submit" value="Login">
-			</form>
-		</div>
+		<form method="POST" action="{{ url_for('login') }}">
+			<div class="form-group">
+				<span class="green_prefix size_up">$</span>
+				<label for="access_key">CTFd Access Token</label>
+			</div>
+			
+			<div class="form-group">
+				<span class="green_prefix">&nbsp;&gt;</span>
+				<input 
+					placeholder="Enter your access token" 
+					type="text" 
+					name="access_key" 
+					id="access_key"
+					required
+					autocomplete="off"
+					autofocus
+				>
+			</div>
+			
+			<div class="form-group" style="margin-top: 1.5em; justify-content: center;">
+				<button type="submit" style="width: 100%; max-width: 300px;">Login</button>
+			</div>
+		</form>
 	</div>
 </div>
 {% endblock %}

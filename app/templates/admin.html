@@ -1,96 +1,453 @@
 {% extends 'base.html' %}
 
 {% block main %}
-<div class="row center">
-    <div style="text-align: center;">
-        <h1>Admin Panel</h1>
-        <h3>{{ instances_count }} instance{% if instances_count > 1 %}s{% endif %} running</h3>
-    </div>
+<section class="row center" style="text-align: center; margin-bottom: 2em;">
+	<div>
+		<h1>Admin Panel</h1>
+		<h3>{{ instances_count }} container{% if instances_count > 1 %}s{% endif %} running</h3>
+	</div>
+</section>
+
+<div class="row center full_width">
+	<div class="terminal full_width" style="overflow-x: auto;">
+		<h2 style="margin-top: 0; text-align: center;">All Instances</h2>
+		
+		<div style="margin-bottom: 1em; display: flex; gap: 1em; align-items: center; flex-wrap: wrap;">
+			<div style="display: flex; align-items: center; gap: 0.5em; width: 38%; min-width: 350px;">
+				<div class="form-group" style="margin-bottom: 0; flex: 1; min-width: 0; width: 100%;">
+					<input 
+						type="text" 
+						id="search-input" 
+						placeholder="Search by team, username, image, or instance name..."
+						style="flex: 1; min-width: 0; width: 100%;"
+					>
+				</div>
+				<button 
+					type="button" 
+					id="clear-search" 
+					class="clear-search-btn"
+					style="display: none; flex-shrink: 0;"
+					title="Clear search"
+				>
+					&times;
+				</button>
+			</div>
+			<div style="margin-left: auto;">
+				<button type="button" id="deleteAllContainers" style="background-color: rgba(255, 68, 68, 0.2); border-color: #ff4444; color: #ffaaaa;">
+					Delete All Instances
+				</button>
+			</div>
+		</div>
+		
+		<table class="full_width">
+			<thead>
+				<tr>
+					<th class="sortable" data-sort="id">ID <span class="sort-indicator"></span></th>
+					<th>CTFd Team</th>
+					<th>CTFd Username</th>
+					<th>Docker Image</th>
+					<th>Port</th>
+					<th>Instance Name</th>
+					<th class="sortable" data-sort="date">Creation Date <span class="sort-indicator"></span></th>
+					<th>Actions</th>
+				</tr>
+			</thead>
+			<tbody id="containers">
+				<tr>
+					<td colspan="8" style="text-align: center; padding: 2em;">
+						<span class="green_prefix">Loading instances...</span>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
 </div>
 
-<div>
-	<div class="row center full_width">
-		<div class="terminal full_width">
-            <table class="full_width">
-                <thead>
-                    <tr>
-                        <td><a class="pointer">ID</a></td>
-                        <td><a class="pointer">CTFd Team</a></td>
-                        <td><a class="pointer">CTFd Username</a></td>
-                        <td><a class="pointer">Docker image</a></td>
-                        <td><a class="pointer">Port</a></td>
-                        <td><a class="pointer">Instance name</a></td>
-                        <td><a class="pointer">Creation date</a></td>
-                        <td>
-                            <button type="button" id="deleteAllContainers">X</button>
-                        </td>
-                    </tr>
-                </thead>
-                <tbody id="containers">
-                </tbody>
-            </table>
+<!-- Custom Confirmation Modal -->
+<div id="confirm-modal" class="custom-modal">
+	<div class="modal-content terminal">
+		<div class="modal-header">
+			<h2 style="margin: 0;" id="confirm-title">Confirm Action</h2>
+			<button type="button" class="modal-close" id="confirm-close">&times;</button>
+		</div>
+		<div class="modal-body">
+			<p id="confirm-message"></p>
+		</div>
+		<div class="modal-footer">
+			<button type="button" id="confirm-cancel" class="modal-cancel-btn">Cancel</button>
+			<button type="button" id="confirm-ok" class="modal-ok-btn">Confirm</button>
 		</div>
 	</div>
-    <a href="{{ url_for('index')}}">Go back</a>
 </div>
+
+<!-- Custom Alert Modal -->
+<div id="alert-modal" class="custom-modal">
+	<div class="modal-content terminal" id="alert-modal-content">
+		<div class="modal-header">
+			<h2 style="margin: 0;" id="alert-title">Notification</h2>
+			<button type="button" class="modal-close" id="alert-close">&times;</button>
+		</div>
+		<div class="modal-body">
+			<p id="alert-message"></p>
+		</div>
+		<div class="modal-footer">
+			<button type="button" id="alert-ok" class="modal-ok-btn">OK</button>
+		</div>
+	</div>
+</div>
+
 <script>
-    document.addEventListener("DOMContentLoaded", function() {
-        fetch('/container/all')
-        .then(response => response.json())
-        .then(data => {
-            let table = document.getElementById("containers");
+	let allContainers = [];
+	let currentSort = { column: null, direction: 'asc' };
 
-            data["data"].forEach(container => {
-                let row = document.createElement('tr');
+	document.addEventListener("DOMContentLoaded", function() {
+		fetch('/container/all')
+			.then(response => response.json())
+			.then(data => {
+				allContainers = data["data"] || [];
+				renderTable(allContainers);
+			})
+			.catch(error => {
+				console.error('Error fetching containers:', error);
+				let table = document.getElementById("containers");
+				table.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 2em;"><span style="color: #ff4444;">Error loading instances</span></td></tr>';
+			});
 
-                let fields = ['id', 'team', 'username', 'image', 'ports', 'instance_name', 'date'];
-                fields.forEach(field => {
-                    let cell = document.createElement('td');
-                    cell.textContent = container[field];
-                    row.appendChild(cell);
-                });
+		// Search functionality
+		const searchInput = document.getElementById('search-input');
+		const clearSearchBtn = document.getElementById('clear-search');
+		
+		function updateClearButton() {
+			if (clearSearchBtn && searchInput) {
+				if (searchInput.value && searchInput.value.trim() !== '') {
+					clearSearchBtn.style.display = 'flex';
+					clearSearchBtn.style.visibility = 'visible';
+					clearSearchBtn.style.opacity = '1';
+				} else {
+					clearSearchBtn.style.display = 'none';
+				}
+			}
+		}
+		
+		if (searchInput) {
+			searchInput.addEventListener('input', function(e) {
+				const query = e.target.value.toLowerCase().trim();
+				filterAndRender(query);
+				updateClearButton();
+			});
+		}
 
-                let deleteCell = document.createElement('td');
-                let deleteButton = document.createElement('button');
-                deleteButton.textContent = 'X';
-                deleteButton.setAttribute('type', 'button');
-                deleteButton.onclick = function() { deleteContainer(container.id); };
-                deleteCell.appendChild(deleteButton);
-                row.appendChild(deleteCell);
+		// Clear search functionality
+		if (clearSearchBtn) {
+			clearSearchBtn.addEventListener('click', function() {
+				if (searchInput) {
+					searchInput.value = '';
+					updateClearButton();
+					filterAndRender('');
+					searchInput.focus();
+				}
+			});
+		}
 
-                table.appendChild(row);
-            });
-        })
-    });
+		// Sort functionality
+		document.querySelectorAll('.sortable').forEach(header => {
+			header.addEventListener('click', function() {
+				const column = this.getAttribute('data-sort');
+				sortTable(column);
+			});
+		});
+	});
 
-    document.getElementById('deleteAllContainers').onclick = ((e) => {
-        let validation = confirm("Are you sure you want to delete ALL instances ?");
+	function renderTable(containers) {
+		let table = document.getElementById("containers");
+		table.innerHTML = '';
 
-        if (validation) {
-            fetch('/container/all', {
-                method: 'DELETE',
-            })
-            .then(response => response.json())
-            .then(data => {
-                alert(JSON.stringify(data));
-                window.location.reload();
-            })
-        }
-    });
+		if (containers.length === 0) {
+			let row = document.createElement('tr');
+			let cell = document.createElement('td');
+			cell.colSpan = 8;
+			cell.style.textAlign = 'center';
+			cell.style.padding = '2em';
+			cell.innerHTML = '<span class="green_prefix">No instances found</span>';
+			row.appendChild(cell);
+			table.appendChild(row);
+			return;
+		}
 
-    function deleteContainer(containerId) {
-        let validation = confirm("Are you sure you want to delete the instance n°" + containerId + " ?");
+		containers.forEach(container => {
+			let row = document.createElement('tr');
 
-        if (validation) {
-            fetch('/container/' + containerId, {
-                method: 'DELETE',
-            })
-            .then(response => response.json())
-            .then(data => {
-                alert(JSON.stringify(data));
-                window.location.reload();
-            })
-        }
-    }
+			let fields = [
+				{ key: 'id', label: 'ID' },
+				{ key: 'team', label: 'CTFd Team' },
+				{ key: 'username', label: 'CTFd Username' },
+				{ key: 'image', label: 'Docker Image' },
+				{ key: 'ports', label: 'Port' },
+				{ key: 'instance_name', label: 'Instance Name' },
+				{ key: 'date', label: 'Creation Date' }
+			];
+
+			fields.forEach(field => {
+				let cell = document.createElement('td');
+				cell.textContent = container[field.key] || 'N/A';
+				cell.setAttribute('data-label', field.label);
+				// Store original data for sorting
+				if (field.key === 'id') {
+					cell.setAttribute('data-sort-value', parseInt(container[field.key]) || 0);
+				} else if (field.key === 'date') {
+					cell.setAttribute('data-sort-value', new Date(container[field.key]).getTime() || 0);
+				}
+				row.appendChild(cell);
+			});
+
+			let deleteCell = document.createElement('td');
+			deleteCell.setAttribute('data-label', 'Actions');
+			let deleteButton = document.createElement('button');
+			deleteButton.textContent = 'X';
+			deleteButton.setAttribute('type', 'button');
+			deleteButton.style.background = 'rgba(255, 68, 68, 0.2)';
+			deleteButton.style.borderColor = '#ff4444';
+			deleteButton.style.color = '#ffaaaa';
+			deleteButton.onclick = function() { deleteContainer(container.id); };
+			deleteCell.appendChild(deleteButton);
+			row.appendChild(deleteCell);
+
+			table.appendChild(row);
+		});
+	}
+
+	function filterAndRender(query) {
+		let filtered = allContainers;
+		
+		if (query) {
+			filtered = allContainers.filter(container => {
+				const team = (container.team || '').toLowerCase();
+				const username = (container.username || '').toLowerCase();
+				const image = (container.image || '').toLowerCase();
+				const instanceName = (container.instance_name || '').toLowerCase();
+				
+				return team.includes(query) || 
+				       username.includes(query) || 
+				       image.includes(query) || 
+				       instanceName.includes(query);
+			});
+		}
+
+		// Apply current sort if any
+		if (currentSort.column) {
+			filtered = sortData(filtered, currentSort.column, currentSort.direction);
+		}
+
+		renderTable(filtered);
+	}
+
+	function sortTable(column) {
+		// Toggle direction if clicking the same column
+		if (currentSort.column === column) {
+			currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+		} else {
+			currentSort.column = column;
+			currentSort.direction = 'asc';
+		}
+
+		// Update sort indicators
+		document.querySelectorAll('.sortable').forEach(header => {
+			const indicator = header.querySelector('.sort-indicator');
+			if (header.getAttribute('data-sort') === column) {
+				indicator.textContent = currentSort.direction === 'asc' ? '↑' : '↓';
+				indicator.style.opacity = '1';
+			} else {
+				indicator.textContent = '';
+				indicator.style.opacity = '0';
+			}
+		});
+
+		// Get current search query
+		const searchInput = document.getElementById('search-input');
+		const query = searchInput ? searchInput.value.toLowerCase().trim() : '';
+		
+		// Filter and sort
+		let filtered = allContainers;
+		if (query) {
+			filtered = allContainers.filter(container => {
+				const team = (container.team || '').toLowerCase();
+				const username = (container.username || '').toLowerCase();
+				const image = (container.image || '').toLowerCase();
+				const instanceName = (container.instance_name || '').toLowerCase();
+				
+				return team.includes(query) || 
+				       username.includes(query) || 
+				       image.includes(query) || 
+				       instanceName.includes(query);
+			});
+		}
+
+		filtered = sortData(filtered, column, currentSort.direction);
+		renderTable(filtered);
+	}
+
+	function sortData(data, column, direction) {
+		return [...data].sort((a, b) => {
+			let aVal, bVal;
+
+			if (column === 'id') {
+				aVal = parseInt(a.id) || 0;
+				bVal = parseInt(b.id) || 0;
+			} else if (column === 'date') {
+				aVal = new Date(a.date).getTime() || 0;
+				bVal = new Date(b.date).getTime() || 0;
+			} else {
+				return 0;
+			}
+
+			if (direction === 'asc') {
+				return aVal - bVal;
+			} else {
+				return bVal - aVal;
+			}
+		});
+	}
+
+	// Custom confirmation dialog
+	function customConfirm(message, title = 'Confirm Action') {
+		return new Promise((resolve) => {
+			const modal = document.getElementById('confirm-modal');
+			const messageEl = document.getElementById('confirm-message');
+			const titleEl = document.getElementById('confirm-title');
+			const okBtn = document.getElementById('confirm-ok');
+			const cancelBtn = document.getElementById('confirm-cancel');
+			const closeBtn = document.getElementById('confirm-close');
+
+			titleEl.textContent = title;
+			messageEl.textContent = message;
+			modal.classList.add('show');
+
+			const close = (result) => {
+				modal.classList.remove('show');
+				resolve(result);
+			};
+
+			okBtn.onclick = () => close(true);
+			cancelBtn.onclick = () => close(false);
+			closeBtn.onclick = () => close(false);
+
+			// Close on outside click
+			modal.onclick = (e) => {
+				if (e.target === modal) close(false);
+			};
+
+			// Close on Escape key
+			const escapeHandler = (e) => {
+				if (e.key === 'Escape' && modal.classList.contains('show')) {
+					close(false);
+					document.removeEventListener('keydown', escapeHandler);
+				}
+			};
+			document.addEventListener('keydown', escapeHandler);
+		});
+	}
+
+	// Custom alert dialog
+	function customAlert(message, title = 'Notification') {
+		return new Promise((resolve) => {
+			const modal = document.getElementById('alert-modal');
+			const modalContent = document.getElementById('alert-modal-content');
+			const messageEl = document.getElementById('alert-message');
+			const titleEl = document.getElementById('alert-title');
+			const okBtn = document.getElementById('alert-ok');
+			const closeBtn = document.getElementById('alert-close');
+
+			titleEl.textContent = title;
+			messageEl.textContent = message;
+			
+			// Remove previous styling classes
+			modalContent.classList.remove('alert-success', 'alert-error');
+			
+			// Add appropriate styling based on title
+			if (title === 'Success') {
+				modalContent.classList.add('alert-success');
+			} else if (title === 'Error') {
+				modalContent.classList.add('alert-error');
+			}
+			
+			modal.classList.add('show');
+
+			const close = () => {
+				modal.classList.remove('show');
+				resolve();
+			};
+
+			okBtn.onclick = close;
+			closeBtn.onclick = close;
+
+			// Close on outside click
+			modal.onclick = (e) => {
+				if (e.target === modal) close();
+			};
+
+			// Close on Escape key
+			const escapeHandler = (e) => {
+				if (e.key === 'Escape' && modal.classList.contains('show')) {
+					close();
+					document.removeEventListener('keydown', escapeHandler);
+				}
+			};
+			document.addEventListener('keydown', escapeHandler);
+		});
+	}
+
+	document.getElementById('deleteAllContainers').onclick = async (e) => {
+		const validation = await customConfirm(
+			"Are you sure you want to delete ALL instances? This action cannot be undone.",
+			"Delete All Instances"
+		);
+
+		if (validation) {
+			fetch('/container/all', {
+				method: 'DELETE',
+			})
+			.then(response => response.json())
+			.then(data => {
+				if (data.success) {
+					customAlert('All instances deleted successfully.', 'Success').then(() => {
+						window.location.reload();
+					});
+				} else {
+					customAlert('Error: ' + (data.message || 'Failed to delete instances'), 'Error');
+				}
+			})
+			.catch(error => {
+				console.error('Error:', error);
+				customAlert('An error occurred while deleting instances', 'Error');
+			});
+		}
+	};
+
+	async function deleteContainer(containerId) {
+		const validation = await customConfirm(
+			"Are you sure you want to delete instance #" + containerId + "? This action cannot be undone.",
+			"Delete Instance"
+		);
+
+		if (validation) {
+			fetch('/container/' + containerId, {
+				method: 'DELETE',
+			})
+			.then(response => response.json())
+			.then(data => {
+				if (data.success) {
+					customAlert('Instance deleted successfully.', 'Success').then(() => {
+						window.location.reload();
+					});
+				} else {
+					customAlert('Error: ' + (data.message || 'Failed to delete instance'), 'Error');
+				}
+			})
+			.catch(error => {
+				console.error('Error:', error);
+				customAlert('An error occurred while deleting the instance', 'Error');
+			});
+		}
+	}
 </script>
 {% endblock %}

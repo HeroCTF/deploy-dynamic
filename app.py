@@ -46,12 +46,12 @@ recaptcha.theme = 'dark'
 
 
 def render(template, **kwargs):
-    """
-    Shortcut for the render_template flask function.
-    """
-    return render_template(template, title=WEBSITE_TITLE, ctfd_url=CTFD_URL,
-        max_instance_duration=MAX_INSTANCE_DURATION, challenges_option=CHALLENGES,
-        instances_count=get_total_instance_count(), **kwargs)
+	"""
+	Shortcut for the render_template flask function.
+	"""
+	return render_template(template, title=WEBSITE_TITLE, ctfd_url=CTFD_URL,
+		max_instance_duration=MAX_INSTANCE_DURATION, max_instance_per_team=MAX_INSTANCE_PER_TEAM,
+		challenges_option=CHALLENGES, instances_count=get_total_instance_count(), **kwargs)
 
 
 @app.route("/admin", methods=['GET'])

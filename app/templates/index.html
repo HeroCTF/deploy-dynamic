@@ -1,100 +1,390 @@
 {% extends 'base.html' %}
 
 {% block main %}
-<div class="row center" style="text-align: center;">
+<section class="row center" style="text-align: center; margin-bottom: 2em;">
 	<div>
-		<h1>Welcome {{ session["user_name"] }} !</h1>
-		<h3>One instance per player at a time.</h3>
-		<h3>An instance will last {{ max_instance_duration }} minutes.</h3>
-		<h3>Deploy unique instances for your challenges</h3>
+		<h1>Welcome {{ session["user_name"] }}!</h1>
 	</div>
-</div>
+</section>
 
-<div>
-	<div class="row center">
-		<div class="terminal">
-			{% with messages = get_flashed_messages(with_categories=true) %}
+<div class="row center">
+	<div class="terminal">
+		<h2 style="margin-top: 0; text-align: center;">Deploy New Instance</h2>
+		
+		{% with messages = get_flashed_messages(with_categories=true) %}
+			{% if messages %}
 				{% for color, message in messages %}
-					<p style="color: {{ color }};">{{ message }}</p>
+					<div class="flash-message {{ color }}" style="margin-bottom: 1em;">
+						<p style="margin: 0; color: {{ color }};">{{ message }}</p>
+					</div>
 				{% endfor %}
-			{% endwith %}
+			{% endif %}
+		{% endwith %}
 
-			<form method="POST" action="/run_instance">
-				<span class="green_prefix size_up"> $ </span><label for="instances">Challenge to run :</label>
-				<br>
-				<br>
-				<span class="green_prefix">&nbsp> </span>
-				<select name="challenge_name">
-					<option value=""> Select a challenge </option>
+		<form method="POST" action="/run_instance">
+			<div class="form-group">
+				<span class="green_prefix size_up">$</span>
+				<label for="challenge_name">Challenge to run:</label>
+			</div>
+			
+			<div class="form-group">
+				<span class="green_prefix">&nbsp;&gt;</span>
+				<select name="challenge_name" id="challenge_name" required>
+					<option value="">Select a challenge</option>
 					{% for challenge in challenges_option %}
 						<option value="{{ challenge['name'] }}">{{ challenge['name'] }}</option>
 					{% endfor %}
 				</select>
-				<br>
-				{% if config['ENABLE_RECAPTCHA'] %}
-					<div style="margin: 20px 0 20px 0;">
-						{{ recaptcha }}
-					</div>
-				{% endif %}
-				<br>
-				<div class="row">
-					<span class="green_prefix size_up"> $ </span>
-					<div class=" green_prefix typing width_90 pointer" onclick="document.getElementById('submit').click()">Run instance</div>
-					<input class="bold" type="submit" id="submit" value="↵">
+			</div>
+			
+			{% if config['ENABLE_RECAPTCHA'] %}
+				<div class="form-group" style="margin: 1.5em 0;">
+					{{ recaptcha }}
 				</div>
-			</form>
-		</div>
-
-		{% if session['admin'] %}
-			<a href="{{ url_for('admin')}}">Admin</a>
-		{% endif %}
-		<a href="{{ url_for('logout')}}">Logout</a>
-	</div>
-
-	
-	<div class="row center">
-		<div class="terminal">
-			<h3>Instances of your team {{ session['team_name'] }}:</h3>
-			{% if challenges_info %}
-				{% for key, challenge in challenges_info.items() %}
-					<div>
-						<hr style="margin: 30px 0 30px 0;">
-						{% for container in challenge %}
-							{% if loop.index == 1 %}
-								<p>
-									<b>{{ container['user_name'] }}</b> deployed the challenge <b>{{ container['name'] }}</b>
-									{% if container['user_name'] == session['user_name'] %}
-										(<a id="remove_me" href="/">remove</a>)
-									{% endif %}
-								</p>
-								<small>Remaining time: {{ container['time_remaining'] }}</small>
-							{% endif %}
-							<p>Host: <strong>{{ container['host'] }}</strong>{% if container['ports'] %}, ports: <strong>{{ container['ports'] }}</strong>{% endif %} ({{ container['hostname'] }})</p>
-						{% endfor %}
-					</div>
-				{% endfor %}
 			{% endif %}
+			
+			<div class="form-row" style="margin-top: 1.5em;">
+				<span class="green_prefix size_up">$</span>
+				<div class="green_prefix typing width_90 pointer" onclick="document.getElementById('submit').click()" style="flex: 1;">Run instance</div>
+				<button type="submit" id="submit" class="bold" style="padding: 0.6em 1em; min-width: 50px;">↵</button>
+			</div>
+		</form>
+	</div>
+</div>
+
+{% if challenges_info %}
+<div class="row center" style="margin-top: 2em;">
+	<div class="terminal" style="width: 90%; max-width: 1200px;">
+		<h3 style="margin-top: 0; text-align: center;">Instances of your team <span class="green_prefix">{{ session['team_name'] }}</span>:</h3>
+		
+		{% for key, challenge in challenges_info.items() %}
+			<div class="instance-card">
+				{% for container in challenge %}
+					{% if loop.index == 1 %}
+						<div class="instance-card-header">
+							<div class="instance-card-info">
+								<p class="instance-card-title" style="margin: 0 0 0.3em 0;">
+									<strong>{{ container['name'] }}</strong> by <strong>{{ container['user_name'] }}</strong>
+								</p>
+								<div class="instance-card-meta">
+									<div class="instance-card-meta-item">
+										<span>Host:</span>
+										<span class="green_prefix">{{ container['host'] }}</span>
+									</div>
+									{% if container['hostname'] %}
+									<div class="instance-card-meta-item">
+										<span>Hostname:</span>
+										<span class="green_prefix">{{ container['hostname'] }}</span>
+									</div>
+									{% endif %}
+								</div>
+								{% if container['ports'] %}
+								<div class="instance-ports-section" style="margin-top: 1em;">
+									<div class="instance-card-meta-item" style="margin-bottom: 0.5em;">
+										<span>Ports:</span>
+										<span class="green_prefix">{{ container['ports'] }}</span>
+									</div>
+									<ul class="port-connections" style="margin: 0.5em 0 0 1.5em; padding: 0; list-style: none;">
+										{% set ports_list = container['ports'].split(',') %}
+										{% for port_entry in ports_list %}
+											{% set port_entry = port_entry.strip() %}
+											{% if '/' in port_entry %}
+												{% set port_parts = port_entry.split('/') %}
+												{% set port_num = port_parts[0].strip() %}
+												{% set port_type = port_parts[1].strip().lower() %}
+												<li style="margin: 0.3em 0; font-family: moncao, monospace; font-size: 0.9em;">
+													{% if port_type == 'ssh' %}
+														<span class="green_prefix">ssh -p {{ port_num }} &lt;user&gt;@{{ container['host'] }}</span>
+													{% elif port_type == 'http' %}
+														<a href="http://{{ container['host'] }}:{{ port_num }}" target="_blank" rel="noopener noreferrer" class="green_prefix" style="text-decoration: underline;">
+															http://{{ container['host'] }}:{{ port_num }}
+														</a>
+													{% elif port_type == 'tcp' %}
+														<span class="green_prefix">nc {{ container['host'] }} {{ port_num }}</span>
+													{% else %}
+														<span class="green_prefix">{{ container['host'] }}:{{ port_num }}</span>
+													{% endif %}
+												</li>
+											{% endif %}
+										{% endfor %}
+									</ul>
+								</div>
+								{% endif %}
+							</div>
+							<div class="instance-card-actions" style="display: flex; align-items: center; gap: 1em; flex-shrink: 0;">
+								<div style="text-align: right; color: rgba(181, 232, 83, 0.8); white-space: nowrap; min-width: 150px;">
+									<small>Time remaining: <span class="green_prefix time-remaining" style="font-size: 1em;" data-initial-time="{{ container['time_remaining'] }}">{{ container['time_remaining'] }}</span></small>
+								</div>
+								{% if container['user_name'] == session['user_name'] %}
+								<button type="button" class="remove-instance-btn" data-instance-id="{{ loop.index }}" style="background-color: rgba(255, 68, 68, 0.2); border-color: #ff4444; color: #ffaaaa; padding: 0.5em 1em; font-size: 0.9em; flex-shrink: 0;">
+									Remove
+								</button>
+								{% endif %}
+							</div>
+						</div>
+					{% else %}
+						<hr>
+						<div class="instance-card-meta">
+							<div class="instance-card-meta-item">
+								<span>Host:</span>
+								<span class="green_prefix">{{ container['host'] }}</span>
+							</div>
+							{% if container['hostname'] %}
+							<div class="instance-card-meta-item">
+								<span>Hostname:</span>
+								<span class="green_prefix">{{ container['hostname'] }}</span>
+							</div>
+							{% endif %}
+						</div>
+						{% if container['ports'] %}
+						<div class="instance-ports-section" style="margin-top: 1em;">
+							<div class="instance-card-meta-item" style="margin-bottom: 0.5em;">
+								<span>Ports:</span>
+								<span class="green_prefix">{{ container['ports'] }}</span>
+							</div>
+							<ul class="port-connections" style="margin: 0.5em 0 0 1.5em; padding: 0; list-style: none;">
+								{% set ports_list = container['ports'].split(',') %}
+								{% for port_entry in ports_list %}
+									{% set port_entry = port_entry.strip() %}
+									{% if '/' in port_entry %}
+										{% set port_parts = port_entry.split('/') %}
+										{% set port_num = port_parts[0].strip() %}
+										{% set port_type = port_parts[1].strip().lower() %}
+										<li style="margin: 0.3em 0; font-family: moncao, monospace; font-size: 0.9em;">
+											{% if port_type == 'ssh' %}
+												<span class="green_prefix">ssh -p {{ port_num }} &lt;user&gt;@{{ container['host'] }}</span>
+											{% elif port_type == 'http' %}
+												<a href="http://{{ container['host'] }}:{{ port_num }}" target="_blank" rel="noopener noreferrer" class="green_prefix" style="text-decoration: underline;">
+													http://{{ container['host'] }}:{{ port_num }}
+												</a>
+											{% elif port_type == 'tcp' %}
+												<span class="green_prefix">nc {{ container['host'] }} {{ port_num }}</span>
+											{% else %}
+												<span class="green_prefix">{{ container['host'] }}:{{ port_num }}</span>
+											{% endif %}
+										</li>
+									{% endif %}
+								{% endfor %}
+							</ul>
+						</div>
+						{% endif %}
+					{% endif %}
+				{% endfor %}
+			</div>
+		{% endfor %}
+	</div>
+</div>
+{% endif %}
+
+<div class="row center" style="margin-top: 1.5em; text-align: center;">
+	<h3>{{ instances_count }} container{% if instances_count > 1 %}s{% endif %} running across all teams</h3>
+</div>
+
+<!-- Custom Confirmation Modal -->
+<div id="confirm-modal" class="custom-modal">
+	<div class="modal-content terminal">
+		<div class="modal-header">
+			<h2 style="margin: 0;" id="confirm-title">Confirm Action</h2>
+			<button type="button" class="modal-close" id="confirm-close">&times;</button>
 		</div>
-		<h3>{{ instances_count }} instance{% if instances_count > 1 %}s{% endif %} running</h3>
+		<div class="modal-body">
+			<p id="confirm-message"></p>
+		</div>
+		<div class="modal-footer">
+			<button type="button" id="confirm-cancel" class="modal-cancel-btn">Cancel</button>
+			<button type="button" id="confirm-ok" class="modal-ok-btn">Confirm</button>
+		</div>
+	</div>
+</div>
+
+<!-- Custom Alert Modal -->
+<div id="alert-modal" class="custom-modal">
+	<div class="modal-content terminal" id="alert-modal-content">
+		<div class="modal-header">
+			<h2 style="margin: 0;" id="alert-title">Notification</h2>
+			<button type="button" class="modal-close" id="alert-close">&times;</button>
+		</div>
+		<div class="modal-body">
+			<p id="alert-message"></p>
+		</div>
+		<div class="modal-footer">
+			<button type="button" id="alert-ok" class="modal-ok-btn">OK</button>
+		</div>
 	</div>
 </div>
 
 <script>
-	const remove_me_link = document.getElementById("remove_me");
-	if (remove_me_link !== undefined || remove_me_link !== null) {
-		remove_me_link.addEventListener('click', function(e) {
-			e.preventDefault();
-			fetch('{{ url_for("remove_me") }}')
-			.then((resp) => resp.json())
-			.then((data) => {
-				window.location.reload();
-			});
+	// Custom confirmation dialog
+	function customConfirm(message, title = 'Confirm Action') {
+		return new Promise((resolve) => {
+			const modal = document.getElementById('confirm-modal');
+			const messageEl = document.getElementById('confirm-message');
+			const titleEl = document.getElementById('confirm-title');
+			const okBtn = document.getElementById('confirm-ok');
+			const cancelBtn = document.getElementById('confirm-cancel');
+			const closeBtn = document.getElementById('confirm-close');
+
+			titleEl.textContent = title;
+			messageEl.textContent = message;
+			modal.classList.add('show');
+
+			const close = (result) => {
+				modal.classList.remove('show');
+				resolve(result);
+			};
+
+			okBtn.onclick = () => close(true);
+			cancelBtn.onclick = () => close(false);
+			closeBtn.onclick = () => close(false);
+
+			// Close on outside click
+			modal.onclick = (e) => {
+				if (e.target === modal) close(false);
+			};
+
+			// Close on Escape key
+			const escapeHandler = (e) => {
+				if (e.key === 'Escape' && modal.classList.contains('show')) {
+					close(false);
+					document.removeEventListener('keydown', escapeHandler);
+				}
+			};
+			document.addEventListener('keydown', escapeHandler);
 		});
 	}
 
-	// auto-refresh the page every 3 minutes
-	setInterval(function() {
-		window.location.reload();
-	}, 3 * 60 * 1000);
+	// Custom alert dialog
+	function customAlert(message, title = 'Notification') {
+		return new Promise((resolve) => {
+			const modal = document.getElementById('alert-modal');
+			const modalContent = document.getElementById('alert-modal-content');
+			const messageEl = document.getElementById('alert-message');
+			const titleEl = document.getElementById('alert-title');
+			const okBtn = document.getElementById('alert-ok');
+			const closeBtn = document.getElementById('alert-close');
+
+			titleEl.textContent = title;
+			messageEl.textContent = message;
+			
+			// Remove previous styling classes
+			modalContent.classList.remove('alert-success', 'alert-error');
+			
+			// Add appropriate styling based on title
+			if (title === 'Success') {
+				modalContent.classList.add('alert-success');
+			} else if (title === 'Error') {
+				modalContent.classList.add('alert-error');
+			}
+			
+			modal.classList.add('show');
+
+			const close = () => {
+				modal.classList.remove('show');
+				resolve();
+			};
+
+			okBtn.onclick = close;
+			closeBtn.onclick = close;
+
+			// Close on outside click
+			modal.onclick = (e) => {
+				if (e.target === modal) close();
+			};
+
+			// Close on Escape key
+			const escapeHandler = (e) => {
+				if (e.key === 'Escape' && modal.classList.contains('show')) {
+					close();
+					document.removeEventListener('keydown', escapeHandler);
+				}
+			};
+			document.addEventListener('keydown', escapeHandler);
+		});
+	}
+
+	// Handle remove instance buttons
+	document.querySelectorAll('.remove-instance-btn').forEach(button => {
+		button.addEventListener('click', async function(e) {
+			e.preventDefault();
+			const validation = await customConfirm('Are you sure you want to remove your instance?', 'Remove Instance');
+			
+			if (validation) {
+				fetch('{{ url_for("remove_me") }}')
+					.then((resp) => resp.json())
+					.then((data) => {
+						if (data.success) {
+							customAlert('Instance removed successfully.', 'Success').then(() => {
+								window.location.reload();
+							});
+						} else {
+							customAlert(data.message || 'Failed to remove instance', 'Error');
+						}
+					})
+					.catch((error) => {
+						console.error('Error:', error);
+						customAlert('An error occurred while removing the instance', 'Error');
+					});
+			}
+		});
+	});
+
+	// Client-side countdown timer
+	function parseTimeRemaining(timeStr) {
+		if (!timeStr || timeStr.includes('shortly') || timeStr.includes('deleted')) {
+			return null; // Invalid or expired
+		}
+		
+		const match = timeStr.match(/(\d+)m(\d+)s/);
+		if (match) {
+			const minutes = parseInt(match[1], 10);
+			const seconds = parseInt(match[2], 10);
+			return minutes * 60 + seconds;
+		}
+		
+		return null;
+	}
+
+	function formatTimeRemaining(totalSeconds) {
+		if (totalSeconds <= 0) {
+			return 'This instance will be deleted shortly...';
+		}
+		
+		const minutes = Math.floor(totalSeconds / 60);
+		const seconds = totalSeconds % 60;
+		return `${minutes.toString().padStart(2, '0')}m${seconds.toString().padStart(2, '0')}s`;
+	}
+
+	function updateCountdowns() {
+		document.querySelectorAll('.time-remaining').forEach(element => {
+			const initialTime = element.getAttribute('data-initial-time');
+			if (!initialTime) return;
+			
+			const initialSeconds = parseTimeRemaining(initialTime);
+			if (initialSeconds === null) {
+				// Already expired or invalid
+				if (!initialTime.includes('shortly') && !initialTime.includes('deleted')) {
+					element.textContent = 'This instance will be deleted shortly...';
+				}
+				return;
+			}
+			
+			// Calculate elapsed time since page load
+			const now = Date.now();
+			if (!element.dataset.startTime) {
+				element.dataset.startTime = now.toString();
+			}
+			
+			const startTime = parseInt(element.dataset.startTime, 10);
+			const elapsedSeconds = Math.floor((now - startTime) / 1000);
+			const remainingSeconds = Math.max(0, initialSeconds - elapsedSeconds);
+			
+			element.textContent = formatTimeRemaining(remainingSeconds);
+		});
+	}
+
+	// Update countdown every second
+	setInterval(updateCountdowns, 1000);
+	// Initial update
+	updateCountdowns();
 </script>
 {% endblock %}
