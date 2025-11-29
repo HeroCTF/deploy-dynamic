@@ -173,6 +173,7 @@ def get_all_containers():
                     "team": instance.team_name,
                     "username": instance.user_name,
                     "image": instance.docker_image,
+                    "domain": instance.host_domain,
                     "ports": instance.ports,
                     "instance_name": instance.instance_name,
                     "date": instance.creation_date,

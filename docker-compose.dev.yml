@@ -4,11 +4,9 @@ services:
     build: .
     restart: unless-stopped
     ports:
-      - 5000:5000
+      - "5000:5000"
     volumes:
-      - ./app:/app/app
-      - ./app.py:/app/app.py
-      - ./config.json:/app/config.json
+      - .:/app/
       - /var/run/docker.sock:/var/run/docker.sock
     depends_on:
       - postgres
